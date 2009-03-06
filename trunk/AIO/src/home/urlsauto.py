@@ -2,5 +2,5 @@
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('',
-    (r'^$', include('home.urls')),
+    (r'^home/', include('home.urls')),
 )

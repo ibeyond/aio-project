@@ -17,7 +17,7 @@ SECRET_KEY = '1234567890'
 
 # Enable I18N and set default language to 'en'
 USE_I18N = True
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = 'zh_cn'
 
 #Restrict supported languages (and JS media generation)
 #LANGUAGES = (
@@ -30,14 +30,15 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.media',
     'django.core.context_processors.request',
     'django.core.context_processors.i18n',
+    'ragendja.auth.context_processors.google_user',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     # Django authentication
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #'django.contrib.auth.middleware.AuthenticationMiddleware',
     # Google authentication
-    #'ragendja.auth.middleware.GoogleAuthenticationMiddleware',
+    'ragendja.auth.middleware.GoogleAuthenticationMiddleware',
     # Hybrid Django/Google authentication
     #'ragendja.auth.middleware.HybridAuthenticationMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -46,21 +47,22 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
 )
-
+AUTH_ADMIN_USER_AS_SUPERUSER = False
 # Google authentication
-#AUTH_USER_MODULE = 'ragendja.auth.google_models'
-#AUTH_ADMIN_MODULE = 'ragendja.auth.google_admin'
+AUTH_USER_MODULE = 'ragendja.auth.google_models'
+AUTH_ADMIN_MODULE = 'ragendja.auth.google_admin'
 # Hybrid Django/Google authentication
 #AUTH_USER_MODULE = 'ragendja.auth.hybrid_models'
 
 GLOBALTAGS = (
     'ragendja.templatetags.ragendjatags',
+    'ragendja.templatetags.googletags',
     'django.templatetags.i18n',
 )
 
-LOGIN_URL = '/account/login/'
-LOGOUT_URL = '/account/logout/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/login/'
+LOGOUT_URL = '/logout/'
+LOGIN_REDIRECT_URL = '/home/'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -74,8 +76,8 @@ INSTALLED_APPS = (
     #'myapp',
     'blogsearch',
     'home',
-    'registration',
-    'mediautils',
+    #'registration',
+    #'mediautils',
 )
 
 # List apps which should be left out from app settings and urlsauto loading
@@ -87,3 +89,7 @@ IGNORE_APP_SETTINGS = IGNORE_APP_URLSAUTO = (
 )
 
 from ragendja.settings_post import *
+
+SUPER_USER = r'ibeyond@gmail.com'
+
+GOOGLE_BLOGSPOT_URL = 'http://www.blogger.com/feeds/'
