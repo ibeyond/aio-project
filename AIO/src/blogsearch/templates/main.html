@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}iBeyond's BlogSearch!{% endblock %}
+
+{% block content %}
+{% if token %}
+{{ feed }}
+{% else %}
+请现在<a href="{% url home.veiws.setting %}">Setting</a>中取得对Blogspot的授权。
+{% endif %}
+{% endblock %}
