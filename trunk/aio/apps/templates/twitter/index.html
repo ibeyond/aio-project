@@ -2,7 +2,8 @@
 {% block title %} Twitter {% endblock %}
 {% block contents %}
 <div>
-<a href="/twitter/import_user">Update User</a>
+<a href="/twitter/import_user">Update User</a> | 
+<a href="/twitter/update">Update Twitter</a>
 </div>
 <h1>Twitter</h1>
 {% if user_info %}
@@ -17,11 +18,11 @@
 <li>{{ user_info.statuses_count }}</li>
 </div>
 {% endif %}
-{% for s in status %}
+{% for s in twitter_status %}
 <li>
-<img src="{{ s.user.profile_image_url }}" />
+<img src="{{ s.twitter_user.profile_image_url }}" />
 <br/>
-<a href="https://twitter/{{s.user.name}}">{{ s.user.screenname }}</a>
+<a href="https://twitter/{{s.twitter_user.name}}">{{ s.twitter_user.screen_name }}</a>
 <br />
 {{ s.text }}
 <br />
