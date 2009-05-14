@@ -1,0 +1,4 @@
+cron:
+- description: 每天更新Twitter
+  url: /cron/twitter
+  schedule: every 5 hours
