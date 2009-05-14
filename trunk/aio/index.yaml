@@ -10,14 +10,14 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 124 times in query history.
+# Used 180 times in query history.
 - kind: OAuthAccessToken
   properties:
   - name: user
   - name: created
     direction: desc
 
-# Used 8 times in query history.
+# Used 23 times in query history.
 - kind: TwitterStatus
   properties:
   - name: twitter_user
