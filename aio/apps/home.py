@@ -9,11 +9,8 @@ import os
 
 class MainPage(webapp.RequestHandler):
     
-    @login_required
     def get(self):
-        print type(self)
         write = self.response.out.write
-        
         user = users.get_current_user();
-        path = os.path.join(os.path.dirname(__file__), '../templates/index.html')
-        write(template.render(path, {'user':user,}))
+        path = os.path.join(os.path.dirname(__file__), 'templates/home/index.html')
+        write(template.render(path, {'user':user, }))

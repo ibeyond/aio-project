@@ -1,6 +1,6 @@
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
-from views.base import MainPage
+from apps.home import MainPage
 
 urls = [
         ('/', MainPage),
