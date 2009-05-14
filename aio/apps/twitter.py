@@ -23,7 +23,7 @@ class Twitter(webapp.RequestHandler):
     user_auth_url = 'https://twitter.com/oauth/authorize'
     user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
     user_show_url = 'https://twitter.com/users/show.json'
-    max_entry_count = 50
+    max_entry_count = 20
 
     '''
     '''
@@ -62,17 +62,14 @@ class Twitter(webapp.RequestHandler):
                 return
             else:
                 self.page_data['user_info'] = TwitterUser.all().filter('user =', self.user).get()
-                self.page_data['twitter_status'] = TwitterStatus.all().filter('twitter_user', self.page_data['user_info']).order('-status_id').fetch(20)
+                self.page_data['twitter_status'] = TwitterStatus.all().filter('twitter_user =', self.page_data['user_info']).order('-status_id').fetch(20)
                 pass
 
         path = get_template_path(__file__, 'index.html')
         write(template.render(path, self.page_data, debug=True))
-    
-    @login_required
-    def post(self, action=None):
-        getattr(self, action)()
         
     def update(self):
+        db.delete(TwitterStatus.all())
         status = simplejson.loads(get_data_from_signed_url(Twitter.user_timeline_url, self.access_token, **{'page':self.request.get('page'), 'count':Twitter.max_entry_count}), 'utf-8')
         for s in status:
             s = dict((str(k), v) for k, v in s.items())
@@ -97,8 +94,11 @@ class Twitter(webapp.RequestHandler):
         user_info = dict((str(k), v) for k, v in user_info.items())
         user_info['user_id'] = user_info['id']
         twitter_user = TwitterUser.all().filter('user_id =', user_info['user_id']).get()
-        if twitter_user is not None: twitter_user.delete()
-        twitter_user = TwitterUser(user=self.user, **user_info)
+        if twitter_user is not None: 
+            for k,v in user_info.items():
+                twitter_user.__setattr__(k ,v)
+        else:
+            twitter_user = TwitterUser(user=self.user, **user_info)
         twitter_user.put()
         
         
