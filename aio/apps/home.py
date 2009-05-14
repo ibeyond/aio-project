@@ -10,7 +10,7 @@ import os
 
 from apps import *
 '''
-欢迎页
+欢迎�?
 
 Created on 2009/05/14
 
@@ -18,15 +18,14 @@ Created on 2009/05/14
 '''
 class MainPage(webapp.RequestHandler):
     '''
-        显示欢迎页
+        显示欢迎�?
     '''
     def get(self):
         self.page_data = make_user_data()
         self.user = users.get_current_user()
         if self.user:
-            if not LocalAccount.all().filter('user =', user).get():
-                local_account = LocalAccount(user=user)
-                local_account.put()
+            if not LocalAccount.all().filter('user =', self.user).get():
+                LocalAccount(user=self.user).put()
         write = self.response.out.write
         path = get_template_path(__file__, 'index.html')
         write(template.render(path, self.page_data))

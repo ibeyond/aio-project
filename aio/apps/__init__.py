@@ -56,7 +56,6 @@ def get_signed_url(__url, __token=None, __meth='GET', **extra_params):
     kwargs['oauth_signature'] = hmac(
         key, message, sha1
         ).digest().encode('base64')[:-1]
-    logging.info('remote_url is [%s?%s]' % (__url, urlencode(kwargs)))
     return '%s?%s' % (__url, urlencode(kwargs))
 
 def encode(text):
