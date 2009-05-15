@@ -8,9 +8,10 @@ from google.appengine.ext.webapp.util import login_required
 from google.appengine.ext import db
 import os
 
-from apps import *
+import apps
+from appengine_utilities import sessions
+
 '''
-欢迎�?
 
 Created on 2009/05/14
 
@@ -18,16 +19,19 @@ Created on 2009/05/14
 '''
 class MainPage(webapp.RequestHandler):
     '''
-        显示欢迎�?
     '''
     def get(self):
-        self.page_data = make_user_data()
+        self.session = sessions.Session()
         self.user = users.get_current_user()
+        
+        self.session['user'] = 'ibeyond'        
         if self.user:
             if not LocalAccount.all().filter('user =', self.user).get():
                 LocalAccount(user=self.user).put()
+    
+        self.page_data = apps.make_user_data(self)
         write = self.response.out.write
-        path = get_template_path(__file__, 'index.html')
+        path = apps.get_template_path(__file__, 'index.html')
         write(template.render(path, self.page_data))
 
 
