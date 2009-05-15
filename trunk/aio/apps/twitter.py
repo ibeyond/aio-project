@@ -35,7 +35,7 @@ class Twitter(webapp.RequestHandler):
         
         logging.info('### %s ###' % self.request.uri)
         self.user = users.get_current_user();
-        self.page_data = apps.make_user_data()
+        self.page_data = apps.make_user_data(self)
         self.write = self.response.out.write
         self.access_token = None
         
@@ -131,6 +131,8 @@ class Twitter(webapp.RequestHandler):
                                         )
         access_token.put()
         request_token.delete()
+        self.update_user()
+        self.update_status()
         
     def timeline(self):
         logging.info(apps.get_data_from_signed_url(Twitter.rate_limit_url, self.access_token))
