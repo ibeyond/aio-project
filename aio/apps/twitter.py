@@ -15,7 +15,9 @@ from google.appengine.api import users
 from google.appengine.ext.webapp.util import login_required
 import logging
 import simplejson
-from apps import *
+from apps import ComplexEncoder
+import apps
+import feedparser
 
 class Twitter(webapp.RequestHandler):
     request_token_url = 'https://twitter.com/oauth/request_token'
@@ -23,15 +25,18 @@ class Twitter(webapp.RequestHandler):
     user_auth_url = 'https://twitter.com/oauth/authorize'
     user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
     user_show_url = 'https://twitter.com/users/show.json'
-    max_entry_count = 20
+    twitter_max_count = 10
+    db_max_count = 2
 
     '''
     '''
     @login_required
     def get(self, action=None):
+        
+        logging.info('### %s ###' % self.request.uri)
         self.user = users.get_current_user();
-        self.page_data = make_user_data()
-        write = self.response.out.write
+        self.page_data = apps.make_user_data()
+        self.write = self.response.out.write
         self.access_token = None
         
         access_token = OAuthAccessToken.all().filter('user =', self.user).order('-created')
@@ -44,13 +49,16 @@ class Twitter(webapp.RequestHandler):
                 logging.exception(e)
                 raise e
             finally:
-                self.redirect('/twitter')
+                if action == 'token': 
+                    self.redirect('/twitter')
+                else:
+                    self.response.headers['Content-Type'] = 'text/json; charset=utf-8'
                 return
         else:
             if self.access_token is None:
                 for req_token in OAuthRequestToken.all():
                     req_token.delete()
-                token_info = get_request_token_info(Twitter.request_token_url)
+                token_info = apps.get_request_token_info(Twitter.request_token_url)
                 request_token = OAuthRequestToken(
                                                   user=self.user,
                                                   service='twitter',
@@ -58,30 +66,37 @@ class Twitter(webapp.RequestHandler):
                                                   )
                 logging.info(dict(token.split('=') for token in token_info.split('&')))
                 request_token.put()
-                self.redirect(get_signed_url(Twitter.user_auth_url, request_token))
+                self.redirect(apps.get_signed_url(Twitter.user_auth_url, request_token))
                 return
             else:
                 self.page_data['user_info'] = TwitterUser.all().filter('user =', self.user).get()
-                self.page_data['twitter_status'] = TwitterStatus.all().filter('twitter_user =', self.page_data['user_info']).order('-status_id').fetch(20)
+                self.page_data['twitter_status'] = TwitterStatus.all().filter('twitter_user =', self.page_data['user_info']).order('-status_id').fetch(Twitter.db_max_count)
                 pass
 
-        path = get_template_path(__file__, 'index.html')
-        write(template.render(path, self.page_data, debug=True))
+        path = apps.get_template_path(__file__, 'index.html')
+        self.write(template.render(path, self.page_data, debug=True))
         
-    def update(self):
-        db.delete(TwitterStatus.all())
-        status = simplejson.loads(get_data_from_signed_url(Twitter.user_timeline_url, self.access_token, **{'page':self.request.get('page'), 'count':Twitter.max_entry_count}), 'utf-8')
-        for s in status:
-            s = dict((str(k), v) for k, v in s.items())
-            s['status_id'] = s['id']
-            s['twitter_user_id'] = s['user']['id']
-            del s['user']
-            twitter_entry = TwitterStatus.all().filter('status_id =', s['id']).get()
-            if twitter_entry is None:
-                TwitterStatus(user=self.user, twitter_user=TwitterUser.all().filter('user_id =', s['twitter_user_id']).get(), **s).put()
+    def update_status(self):
+        page_no = 1;
+        if self.request.get('page') == '':
+    #        db.delete(TwitterStatus.all())
+            status = simplejson.loads(apps.get_data_from_signed_url(Twitter.user_timeline_url, self.access_token, **{'page':self.request.get('page'), 'count':Twitter.twitter_max_count}), apps.encoding)
+            for s in status:
+                s = dict((str(k), v) for k, v in s.items())
+                s['status_id'] = s['id']
+                s['twitter_user_id'] = s['user']['id']
+                del s['user']
+                twitter_entry = TwitterStatus.all().filter('status_id =', s['id']).get()
+                if twitter_entry is None:
+                    TwitterStatus(user=self.user, twitter_user=TwitterUser.all().filter('user_id =', s['twitter_user_id']).get(), **s).put()
+        else:
+            page_no = int(self.request.get('page'))
+        result = TwitterStatus.all().filter('user = ', self.user).order('-status_id').fetch(Twitter.db_max_count, page_no * Twitter.db_max_count)
+        self.write(simplejson.dumps([status for status in result], cls=ComplexEncoder,))
+        pass
                 
-    def import_entry(self):
-        status = simplejson.loads(get_data_from_signed_url(Twitter.user_timeline_url, self.access_token, **{'page':self.request.get('page'), 'count':Twitter.max_entry_count}), 'utf-8')
+    def import_status(self):
+        status = simplejson.loads(apps.get_data_from_signed_url(Twitter.user_timeline_url, self.access_token, **{'page':self.request.get('page'), 'count':Twitter.max_entry_count}), apps.encoding)
         logging.info('==================== import start =================')
         for s in status:
             logging.info(['%s = %s' % (k, v) for k, v in s.items()])
@@ -89,22 +104,26 @@ class Twitter(webapp.RequestHandler):
         self.page_data['status'] = status;
         pass
         
-    def import_user(self):
-        user_info = simplejson.loads(get_data_from_signed_url(Twitter.user_show_url, self.access_token, **{'user_id':self.access_token.user_id}))
+    def update_user(self):
+        user_info = simplejson.loads(apps.get_data_from_signed_url(Twitter.user_show_url, self.access_token, **{'user_id':self.access_token.user_id}))
         user_info = dict((str(k), v) for k, v in user_info.items())
         user_info['user_id'] = user_info['id']
         twitter_user = TwitterUser.all().filter('user_id =', user_info['user_id']).get()
         if twitter_user is not None: 
-            for k,v in user_info.items():
-                twitter_user.__setattr__(k ,v)
+            for k, v in user_info.items():
+                twitter_user.__setattr__(k , v)
         else:
             twitter_user = TwitterUser(user=self.user, **user_info)
         twitter_user.put()
+        twitter_user = TwitterUser.all().get()
         
+        result = apps.db_to_dict(twitter_user, ['twitterstatus_set'])
+        self.write(simplejson.dumps(result, cls=ComplexEncoder,))
+        pass
         
     def token(self):
         request_token = OAuthRequestToken.all().filter('user =', self.user).filter('service =', 'twitter').filter('oauth_token =', self.request.get('oauth_token')).get()
-        token_info = get_data_from_signed_url(Twitter.access_token_url, request_token)
+        token_info = apps.get_data_from_signed_url(Twitter.access_token_url, request_token)
         access_token = OAuthAccessToken(
                                         user=self.user,
                                         service='twitter',
@@ -114,8 +133,7 @@ class Twitter(webapp.RequestHandler):
         request_token.delete()
         
     def timeline(self):
-        logging.info(get_data_from_signed_url(Twitter.rate_limit_url, self.access_token))
-        
+        logging.info(apps.get_data_from_signed_url(Twitter.rate_limit_url, self.access_token))
 
 class TwitterUser(db.Model):
     user = db.UserProperty()

@@ -1,31 +1,131 @@
 {% extends '../layout.html' %}
 {% block title %} Twitter {% endblock %}
+{% block javascript %}
+<script language="javascript">
+$(document).ready(function(){
+	$('#update_user_btn').click(function(){
+		$.ajax({
+			url: '/twitter/update_user',
+		    type: 'GET',
+		    dataType: 'json',
+		    success: function(response){
+		    },
+			error: function(){
+		    },
+		});
+	});
+	$('#update_status_btn').click(function(){
+		$.ajax({
+			url: '/twitter/update_status',
+		    type: 'GET',
+		    dataType: 'json',
+		    success: function(response){
+		    	update_twitter(response);
+		    },
+			error: function(){
+		    },
+		});
+	});
+	$('#prev_status_btn').click(function(){
+		$.ajax({
+			url: '/twitter/update_status?page=' + (parseInt($('#twitter_status_page_no').val()) - 1),
+		    type: 'GET',
+		    dataType: 'json',
+		    success: function(response){
+				change_page_no(-1);
+		    	update_twitter(response);
+		    	
+		    },
+			error: function(){
+		    },
+		});
+	});
+	$('#next_status_btn').click(function(){
+		$.ajax({
+			url: '/twitter/update_status?page=' + (parseInt($('#twitter_status_page_no').val()) + 1),
+		    type: 'GET',
+		    dataType: 'json',
+		    success: function(response){
+				change_page_no(1);
+		    	update_twitter(response);
+		    	
+		    },
+			error: function(){
+		    },
+		});
+	});
+});
+change_page_no = function(step){
+	$('#twitter_status_page_no').val(parseInt($('#twitter_status_page_no').val()) + step);
+	if (parseInt($('#twitter_status_page_no').val()) == 0){
+		$('#prev_status_btn').attr('disabled',true);
+	}else{
+		$('#prev_status_btn').attr('disabled',false);
+	}
+}
+update_twitter = function(response){
+	var html = '';
+	for(var cnt in response){
+		html += '<tr><td><img src=';
+    	html += response[cnt].twitter_user.profile_image_url;
+    	html += ' /></td><td><a href=\"https://twitter/';
+    	html += response[cnt].twitter_user.name;
+    	html += '\">';
+    	html += response[cnt].twitter_user.screen_name;
+    	html += '</a> says:<br />';
+    	html += response[cnt].text;
+		html += '</td></tr>';
+	}
+	$('#twitter_status').html(html)
+
+};
+</script>
+{% endblock %}
 {% block contents %}
-<div>
-<a href="/twitter/import_user">Update User</a> | 
-<a href="/twitter/update">Update Twitter</a>
+<div id="twitter_menu">
+<input type="button" id="update_user_btn" value="update user" />
+<input type="button" id="update_status_btn" value="update status" />
+<input type="button" id="prev_status_btn" value="prev" />
+<input type="button" id="next_status_btn" value="next" />
+<input type="hidden" id="twitter_status_page_no" value="0" />
 </div>
 <h1>Twitter</h1>
+<div id="twitter_user_panel">
 {% if user_info %}
-<div>
-<img src="{{ user_info.profile_image_url }}" />
-<li><a href="{{ user_info.url }}">{{ user_info.screen_name }}</a></li>
-<li>{{ user_info.location }}</li>
-<li>{{ user_info.followers_count }}</li>
-<li>{{ user_info.friends_count }}</li>
-<li>{{ user_info.created_at }}</li>
-<li>{{ user_info.favourites_count }}</li>
-<li>{{ user_info.statuses_count }}</li>
-</div>
+<table border="1">
+<caption>Twitter User</caption>
+<tbody>
+<tr>
+<td><img src="{{ user_info.profile_image_url }}" /></td>
+<td>
+<span><a href="{{ user_info.url }}">{{ user_info.screen_name }}</a></span>
+<br />
+<span>Updates:{{ user_info.statuses_count }}</span>
+</td>
+</tr>
+</tbody>
+</table>
 {% endif %}
+</div>
+<div id="twitter_status_panel">
+{% if twitter_status %}
+<table border="1">
+<caption>Twitter Status</caption>
+<tbody id="twitter_status">
 {% for s in twitter_status %}
-<li>
+<tr>
+<td>
 <img src="{{ s.twitter_user.profile_image_url }}" />
-<br/>
-<a href="https://twitter/{{s.twitter_user.name}}">{{ s.twitter_user.screen_name }}</a>
+</td>
+<td>
+<a href="https://twitter/{{s.twitter_user.name}}">{{ s.twitter_user.screen_name }}</a> says:
 <br />
 {{ s.text }}
-<br />
-</li>
+</td>
+</tr>
 {% endfor %}
+</tbody>
+</table>
+{% endif %}
+</div>
 {% endblock %}
