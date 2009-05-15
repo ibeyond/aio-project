@@ -1,4 +1,4 @@
 cron:
 - description: update Twitter
-  url: /
+  url: /cron/twitter
   schedule: every 5 hours
