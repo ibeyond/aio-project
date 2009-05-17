@@ -22,7 +22,7 @@ class Cron(webapp.RequestHandler):
     twitter_import_counter = 'twitter_import_counter'
     
     def get(self, action):
-        getattr(self, action,self.index)()
+        getattr(self, action, self.index)()
         pass
     
     def index(self):
@@ -44,12 +44,12 @@ class Cron(webapp.RequestHandler):
                 status = simplejson.loads(apps.get_data_from_signed_url(Twitter.user_timeline_url, access_token, **{'count':Cron.twitter_max_count}), apps.encoding)
                 apps.add_status(status, access_token.user, twitter_user)
                 if (apps.get_count(twitter_user.user, Twitter.twitter_status_counter) < twitter_user.statuses_count):
-                    if ((apps.get_count(twitter_user.user, Cron.twitter_import_counter, init_value=2)-1) * Cron.twitter_max_count) > twitter_user.statuses_count:
+                    if ((apps.get_count(twitter_user.user, Cron.twitter_import_counter, init_value=2) - 1) * Cron.twitter_max_count) > twitter_user.statuses_count:
                         if apps.get_count(twitter_user.user, Cron.twitter_import_counter) > 2:
                             apps.reset_counter(twitter_user.user, Cron.twitter_import_counter)
                     page_no = apps.get_count(user=twitter_user.user, name=Cron.twitter_import_counter, init_value=2)
                     status = simplejson.loads(apps.get_data_from_signed_url(Twitter.user_timeline_url, access_token, **{'page':page_no, 'count':Cron.twitter_max_count}), apps.encoding)
                     apps.add_status(status, access_token.user, twitter_user)
                     apps.add_count(twitter_user.user, Cron.twitter_import_counter, 1)
-            else:
-                apps.reset_counter(twitter_user.user, Cron.twitter_import_counter)
+                else:
+                    apps.reset_counter(twitter_user.user, Cron.twitter_import_counter)

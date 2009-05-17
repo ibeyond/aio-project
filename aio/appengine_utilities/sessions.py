@@ -393,7 +393,7 @@ class Session(object):
                 for sd in sessiondata:
                     sd.delete()
             # delete from memcache
-            memcache.delete('sid-'+str(self.session.key()))
+            memcache.delete('sid-' + str(self.session.key()))
             # delete the session now that all items that reference it are deleted.
             self.session.delete()
         # unset any cookie values that may exist
@@ -465,7 +465,7 @@ class Session(object):
             data_results = data_query.fetch(1000)
             for data_result in data_results:
                 data_result.delete()
-            memcache.delete('sid-'+str(result.key()))
+            memcache.delete('sid-' + str(result.key()))
             result.delete()
 
     # Implement Python container methods
@@ -486,7 +486,7 @@ class Session(object):
         if keyname in self.cookie_vals:
             return self.cookie_vals[keyname]
         if hasattr(self, "session"):
-            mc = memcache.get('sid-'+str(self.session.key()))
+            mc = memcache.get('sid-' + str(self.session.key()))
             if mc is not None:
                 if keyname in mc:
                     return mc[keyname]
@@ -545,7 +545,7 @@ class Session(object):
             keyname: The keyname of the object to delete.
         """
         bad_key = False
-        sessdata = self._get(keyname = keyname)
+        sessdata = self._get(keyname=keyname)
         if sessdata is None:
             bad_key = True
         else:
@@ -568,7 +568,7 @@ class Session(object):
         """
         # check memcache first
         if hasattr(self, "session"):
-            mc = memcache.get('sid-'+str(self.session.key()))
+            mc = memcache.get('sid-' + str(self.session.key()))
             if mc is not None:
                 return len(mc) + len(self.cookie_vals)
             results = self._get()
@@ -597,7 +597,7 @@ class Session(object):
         """
         # try memcache first
         if hasattr(self, "session"):
-            mc = memcache.get('sid-'+str(self.session.key()))
+            mc = memcache.get('sid-' + str(self.session.key()))
             if mc is not None:
                 for k in mc:
                     yield k
@@ -631,7 +631,7 @@ class Session(object):
                 for sd in sessiondata:
                     data[sd.keyname] = pickle.loads(sd.content)
 
-            memcache.set('sid-'+str(self.session.key()), data, \
+            memcache.set('sid-' + str(self.session.key()), data, \
                 self.session_expire_time)
 
     def cycle_key(self):
@@ -671,7 +671,7 @@ class Session(object):
             for sd in sessiondata:
                 sd.delete()
         # delete from memcache
-        memcache.delete('sid-'+str(self.session.key()))
+        memcache.delete('sid-' + str(self.session.key()))
         self.cache = {}
         self.cookie_vals = {}
         self.output_cookie[self.cookie_name + '_data'] = \
@@ -720,7 +720,7 @@ class Session(object):
             v.append(self[k])
         return v
 
-    def get(self, keyname, default = None):
+    def get(self, keyname, default=None):
         """
         a[k] if k in a, else x
         """
@@ -731,7 +731,7 @@ class Session(object):
                 return default
             return None
 
-    def setdefault(self, keyname, default = None):
+    def setdefault(self, keyname, default=None):
         """
         a[k] if k in a, else x (also setting it)
         """

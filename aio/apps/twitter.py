@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-Twitter应用页
+Twitter应用�?
 
 Created on 2009/05/14
 
@@ -52,9 +52,9 @@ class Twitter(webapp.RequestHandler):
             except Exception, e:
                 self.redirect('/twitter')
             finally:
-                if action in ['token','clean']: 
+                if action in ['token', 'clean']: 
                     self.redirect('/twitter')
-                elif action in ['update_user','update_status']:
+                elif action in ['update_user', 'update_status']:
                     self.response.headers['Content-Type'] = 'text/json; charset=utf-8'
                 return
         else:
