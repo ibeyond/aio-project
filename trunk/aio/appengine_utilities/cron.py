@@ -73,8 +73,8 @@ class Cron(object):
         query.filter('next_run <= ', datetime.datetime.now())
         results = query.fetch(1000)
         if len(results) > 0:
-            one_second = datetime.timedelta(seconds = 1)
-            before  = datetime.datetime.now()
+            one_second = datetime.timedelta(seconds=1)
+            before = datetime.datetime.now()
             for r in results:
                 if re.search(':' + APPLICATION_PORT, r.url):
                     r.url = re.sub(':' + APPLICATION_PORT, ':' + CRON_PORT, r.url)
@@ -403,9 +403,9 @@ class Cron(object):
     def _calc_month(self, next_run, cron):
         while True:
             if cron["mon"][-1] < next_run.month:
-                next_run = next_run.replace(year=next_run.year+1, \
+                next_run = next_run.replace(year=next_run.year + 1, \
                 month=cron["mon"][0], \
-                day=1,hour=0,minute=0)
+                day=1, hour=0, minute=0)
             else:
                 if next_run.month in cron["mon"]:
                     return next_run

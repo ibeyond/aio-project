@@ -60,9 +60,9 @@ class Cache(object):
     urlFetch()), or the query objects themselves.
     """
 
-    def __init__(self, clean_check_percent = CLEAN_CHECK_PERCENT,
-      max_hits_to_clean = MAX_HITS_TO_CLEAN,
-        default_timeout = DEFAULT_TIMEOUT):
+    def __init__(self, clean_check_percent=CLEAN_CHECK_PERCENT,
+      max_hits_to_clean=MAX_HITS_TO_CLEAN,
+        default_timeout=DEFAULT_TIMEOUT):
         """
         Initializer
 
@@ -105,11 +105,11 @@ class Cache(object):
 
     def _validate_timeout(self, timeout):
         if timeout == None:
-            timeout = datetime.datetime.now() +\
+            timeout = datetime.datetime.now() + \
             datetime.timedelta(seconds=DEFAULT_TIMEOUT)
         if type(timeout) == type(1):
             timeout = datetime.datetime.now() + \
-                datetime.timedelta(seconds = timeout)
+                datetime.timedelta(seconds=timeout)
         if type(timeout) != datetime.datetime:
             raise TypeError
         if timeout < datetime.datetime.now():
@@ -117,7 +117,7 @@ class Cache(object):
 
         return timeout
 
-    def add(self, key = None, value = None, timeout = None):
+    def add(self, key=None, value=None, timeout=None):
         """
         add adds an entry to the cache, if one does not already
         exist.
@@ -145,12 +145,12 @@ class Cache(object):
             pass
 
         memcache_timeout = timeout - datetime.datetime.now()
-        memcache.set('cache-'+key, value, int(memcache_timeout.seconds))
+        memcache.set('cache-' + key, value, int(memcache_timeout.seconds))
 
         if 'AEU_Events' in __main__.__dict__:
             __main__.AEU_Events.fire_event('cacheAdded')
 
-    def set(self, key = None, value = None, timeout = None):
+    def set(self, key=None, value=None, timeout=None):
         """
         add adds an entry to the cache, overwriting an existing value
         if one already exists.
@@ -172,12 +172,12 @@ class Cache(object):
             pass
 
         memcache_timeout = timeout - datetime.datetime.now()
-        memcache.set('cache-'+key, value, int(memcache_timeout.seconds))
+        memcache.set('cache-' + key, value, int(memcache_timeout.seconds))
 
         if 'AEU_Events' in __main__.__dict__:
             __main__.AEU_Events.fire_event('cacheSet')
 
-    def _read(self, key = None):
+    def _read(self, key=None):
         """
         _read returns a cache object determined by the key. It's set
         to private because it returns a db.Model object, and also
@@ -198,11 +198,11 @@ class Cache(object):
         if 'AEU_Events' in __main__.__dict__:
             __main__.AEU_Events.fire_event('cacheRead')
 
-    def delete(self, key = None):
+    def delete(self, key=None):
         """
         Deletes a cache object determined by the key.
         """
-        memcache.delete('cache-'+key)
+        memcache.delete('cache-' + key)
         result = self._read(key)
         if result:
             if 'AEU_Events' in __main__.__dict__:
@@ -213,7 +213,7 @@ class Cache(object):
         """
         get is used to return the cache value associated with the key passed.
         """
-        mc = memcache.get('cache-'+key)
+        mc = memcache.get('cache-' + key)
         if mc:
             if 'AEU_Events' in __main__.__dict__:
                 __main__.AEU_Events.fire_event('cacheReadFromMemcache')
@@ -224,7 +224,7 @@ class Cache(object):
         if result:
             timeout = result.timeout - datetime.datetime.now()
             # print timeout.seconds
-            memcache.set('cache-'+key, pickle.loads(result.value),
+            memcache.set('cache-' + key, pickle.loads(result.value),
                int(timeout.seconds))
             return pickle.loads(result.value)
         else:

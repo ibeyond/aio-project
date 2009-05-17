@@ -20,13 +20,13 @@ consumer_secret = 'JqZsh6FGPPjYVdgypRYQbd0Ljl33kZ79EPJQ66pVKQ'
 encoding = 'utf-8'
 
 def make_user_data(obj):
-    if not hasattr(obj,'page_data'): obj.page_data = {}
-    if hasattr(obj,'user') and obj.user:
+    if not hasattr(obj, 'page_data'): obj.page_data = {}
+    if hasattr(obj, 'user') and obj.user:
         obj.page_data['user'] = obj.user
         obj.page_data['logout_url'] = users.create_logout_url('/')
     else:
         obj.page_data['login_url'] = users.create_login_url('/')
-    if hasattr(obj,'session'): obj.page_data['session'] = obj.session
+    if hasattr(obj, 'session'): obj.page_data['session'] = obj.session
     return obj.page_data
     
 def get_template_path(app_name, template_name, template_base='templates'):
@@ -100,25 +100,25 @@ class Counter(db.Model):
     name = db.StringProperty()
     value = db.IntegerProperty()
     
-def add_count(user,name,count):
+def add_count(user, name, count):
     counter = Counter.all().filter('user =', user).filter('name =', name).get()
     if counter is None:
-        counter = Counter(user=user,name=name,value=count)
+        counter = Counter(user=user, name=name, value=count)
     else:
         counter.value += count
     counter.put()
     
-def get_count(user,name,init_value=0):
+def get_count(user, name, init_value=0):
     counter = Counter.all().filter('user =', user).filter('name =', name).get()
     if counter is None:
-        counter = Counter(user=user,name=name,value=init_value)
+        counter = Counter(user=user, name=name, value=init_value)
         counter.put()
     return counter.value
 
-def reset_counter(user,name):
+def reset_counter(user, name):
     db.delete(Counter.all().filter('user =', user).filter('name =', name))
 
-def add_status(status,user,twitter_user=None):
+def add_status(status, user, twitter_user=None):
     from apps.twitter import Twitter, TwitterStatus, TwitterUser
     from datetime import datetime
     for s in status:
@@ -126,7 +126,7 @@ def add_status(status,user,twitter_user=None):
         s['status_id'] = s['id']
         s['twitter_user_id'] = s['user']['id']
         del s['user']
-        s['published_at'] = datetime.strptime(s['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
+        s['published_at'] = datetime.strptime(s['created_at'], '%a %b %d %H:%M:%S +0000 %Y')
         twitter_entry = TwitterStatus.all().filter('status_id =', s['id']).get()
         if twitter_entry is None:
             if twitter_user is None:

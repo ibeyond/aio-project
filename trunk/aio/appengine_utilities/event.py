@@ -37,7 +37,7 @@ class Event(object):
     def __init__(self):
         self.events = []
 
-    def subscribe(self, event, callback, args = None):
+    def subscribe(self, event, callback, args=None):
         """
         This method will subscribe a callback function to an event name.
         """
@@ -46,16 +46,16 @@ class Event(object):
             self.events.append({"event": event, "callback": callback, \
                 "args": args, })
 
-    def unsubscribe(self, event, callback, args = None):
+    def unsubscribe(self, event, callback, args=None):
         """
         This method will unsubscribe a callback from an event.
         """
         if {"event": event, "callback": callback, "args": args, }\
             in self.events:
-            self.events.remove({"event": event, "callback": callback,\
+            self.events.remove({"event": event, "callback": callback, \
                 "args": args, })
 
-    def fire_event(self, event = None):
+    def fire_event(self, event=None):
         """
         This method is what a method uses to fire an event,
         initiating all registered callbacks
