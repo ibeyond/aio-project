@@ -10,35 +10,35 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 8 times in query history.
+# Unused in query history -- copied from input.
 - kind: FeedEntry
   properties:
   - name: base_feed
   - name: updated
     direction: desc
 
-# Used 482 times in query history.
+# Used 276 times in query history.
 - kind: OAuthAccessToken
   properties:
   - name: user
   - name: created
     direction: desc
 
-# Used 68 times in query history.
+# Used 40 times in query history.
 - kind: TwitterStatus
   properties:
   - name: twitter_user
   - name: status_id
     direction: desc
 
-# Used 98 times in query history.
+# Used 10 times in query history.
 - kind: TwitterStatus
   properties:
   - name: user
   - name: status_id
     direction: desc
 
-# Used 2 times in query history.
+# Unused in query history -- copied from input.
 - kind: django_admin_log
   properties:
   - name: user

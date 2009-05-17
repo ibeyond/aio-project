@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from google.appengine.api import users
 from google.appengine.api.urlfetch import fetch as urlfetch
@@ -61,6 +62,7 @@ def get_signed_url(__url, __token=None, __meth='GET', **extra_params):
     kwargs['oauth_signature'] = hmac(
         key, message, sha1
         ).digest().encode('base64')[:-1]
+    logging.info('#### [%s] ####' % '%s?%s' % (__url, urlencode(kwargs)))
     return '%s?%s' % (__url, urlencode(kwargs))
 
 def encode(text):
@@ -91,3 +93,45 @@ class ComplexEncoder(simplejson.JSONEncoder):
             pass
         else:
             return super(ComplexEncoder, self).default(obj)
+        
+from google.appengine.ext import db
+class Counter(db.Model):
+    user = db.UserProperty()
+    name = db.StringProperty()
+    value = db.IntegerProperty()
+    
+def add_count(user,name,count):
+    counter = Counter.all().filter('user =', user).filter('name =', name).get()
+    if counter is None:
+        counter = Counter(user=user,name=name,value=count)
+    else:
+        counter.value += count
+    counter.put()
+    
+def get_count(user,name,init_value=0):
+    counter = Counter.all().filter('user =', user).filter('name =', name).get()
+    if counter is None:
+        counter = Counter(user=user,name=name,value=init_value)
+        counter.put()
+    return counter.value
+
+def reset_counter(user,name):
+    db.delete(Counter.all().filter('user =', user).filter('name =', name))
+
+def add_status(status,user,twitter_user=None):
+    from apps.twitter import Twitter, TwitterStatus, TwitterUser
+    from datetime import datetime
+    for s in status:
+        s = dict((str(k), v) for k, v in s.items())
+        s['status_id'] = s['id']
+        s['twitter_user_id'] = s['user']['id']
+        del s['user']
+        s['published_at'] = datetime.strptime(s['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
+        twitter_entry = TwitterStatus.all().filter('status_id =', s['id']).get()
+        if twitter_entry is None:
+            if twitter_user is None:
+                TwitterStatus(user=user, twitter_user=TwitterUser.all().filter('user_id =', s['twitter_user_id']).get(), **s).put()
+            else:
+                TwitterStatus(user=user, twitter_user=twitter_user, **s).put()
+            add_count(user, Twitter.twitter_status_counter, 1)
+    
