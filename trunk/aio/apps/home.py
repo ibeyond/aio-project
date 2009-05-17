@@ -28,7 +28,7 @@ class MainPage(webapp.RequestHandler):
         if self.user:
             if not LocalAccount.all().filter('user =', self.user).get():
                 LocalAccount(user=self.user).put()
-    
+        
         self.page_data = apps.make_user_data(self)
         write = self.response.out.write
         path = apps.get_template_path(__file__, 'index.html')
