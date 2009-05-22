@@ -1,94 +1,8 @@
 {% extends '../layout.html' %}
 {% block title %} Twitter {% endblock %}
 {% block javascript %}
-<script language="javascript">
-$(document).ready(function(){
-	$('#update_user_btn').click(function(){
-		$.ajax({
-			url: '/twitter/update_user',
-		    type: 'GET',
-		    dataType: 'json',
-		    success: function(response){
-		    },
-			error: function(){
-		    },
-		});
-	});
-	$('#update_status_btn').click(function(){
-		$.ajax({
-			url: '/twitter/update_status',
-		    type: 'GET',
-		    dataType: 'json',
-		    success: function(response){
-		    	update_twitter(response);
-		    },
-			error: function(){
-		    },
-		});
-	});
-	$('#prev_status_btn').click(function(){
-		$.ajax({
-			url: '/twitter/update_status?page=' + (parseInt($('#twitter_status_page_no').val()) - 1),
-		    type: 'GET',
-		    dataType: 'json',
-		    success: function(response){
-				change_page_no(-1);
-		    	update_twitter(response);
-		    	
-		    },
-			error: function(){
-		    },
-		});
-	});
-	$('#next_status_btn').click(function(){
-		$.ajax({
-			url: '/twitter/update_status?page=' + (parseInt($('#twitter_status_page_no').val()) + 1),
-		    type: 'GET',
-		    dataType: 'json',
-		    success: function(response){
-				change_page_no(1);
-		    	update_twitter(response);
-		    	
-		    },
-			error: function(){
-		    },
-		});
-	});
-});
-change_page_no = function(step){
-	$('#twitter_status_page_no').val(parseInt($('#twitter_status_page_no').val()) + step);
-	if (parseInt($('#twitter_status_page_no').val()) == 0){
-		$('#prev_status_btn').attr('disabled',true);
-	}else{
-		$('#prev_status_btn').attr('disabled',false);
-	}
-}
-update_twitter = function(response){
-	var html = '';
-	for(var cnt in response){
-		html += '<tr><td><img src=';
-    	html += response[cnt].twitter_user.profile_image_url;
-    	html += ' /></td><td><a href=\"https://twitter/';
-    	html += response[cnt].twitter_user.name;
-    	html += '\">';
-    	html += response[cnt].twitter_user.screen_name;
-    	html += '</a> says:<br />';
-    	html += response[cnt].text;
-		html += '</td></tr>';
-	}
-	$('#twitter_status').html(html)
-
-};
-</script>
 {% endblock %}
 {% block contents %}
-<div id="twitter_menu">
-<input type="button" id="update_user_btn" value="update user" />
-<input type="button" id="update_status_btn" value="update status" />
-<input type="button" id="prev_status_btn" value="prev" />
-<input type="button" id="next_status_btn" value="next" />
-<input type="hidden" id="twitter_status_page_no" value="0" />
-</div>
 <h1>Twitter</h1>
 <div id="twitter_user_panel">
 {% if user_info %}
@@ -107,26 +21,36 @@ update_twitter = function(response){
 </table>
 {% endif %}
 </div>
-<div id="twitter_status_panel">
-{% if twitter_status %}
-<table border="1">
-<caption>Twitter Status</caption>
-<tbody id="twitter_status">
-{% for s in twitter_status %}
-<tr>
-<td>
-<img src="{{ s.twitter_user.profile_image_url }}" />
-</td>
-<td>
-<a href="https://twitter/{{s.twitter_user.name}}">{{ s.twitter_user.screen_name }}</a> says:
+{% if blog_site %}
+<a href="/blogger/update_blog">Update blogger</a>
+<div id='blog_panel'>
+{{ twitter_blog_label}}
 <br />
-{{ s.text }}
-</td>
-</tr>
+<form action="/twitter/link_blog" method="post">
+Blog Site:
+<select name="blog_label" id="blog_label">
+<option>======</option>
+{% for blog in blog_site %}
+{% for c in blog.category %} 
+<option value="{{ user_info.user_id }}_{{ blog.n_id }}_{{ c }}">{{blog.title}}->{{ c }}</option>
 {% endfor %}
-</tbody>
-</table>
-{% endif %}
+<option>======</option>
+{% endfor %} 
+</select>
+<input type="submit">
+</form>
+<form action="/twitter/post_to_blog">
+<input type="hidden" value="{{ date_param }}" name="date_param">
+<input type="hidden" value="{{ user_info.user_id }}" name="twitter_id">
+<input type="submit" value="post to blog">
+</form>
 </div>
-<a href="/twitter/clean">clean</a>
+{% endif %}
+<div id="date_nav">
+<a href="/twitter">today</a>
+{% for tl in time_links %}
+| <a href="/twitter/show?date={{ tl|datetz:"Y-m-d" }}">{{ tl|datetz:"Y-m-d" }}</a> 
+{% endfor %}
+</div>
+{% include 'twitter_list.html' %}
 {% endblock %}
