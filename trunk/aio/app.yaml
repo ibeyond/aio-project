@@ -4,6 +4,9 @@ runtime: python
 api_version: 1
 
 handlers:
+- url: /js
+  static_dir: static/js
+
 - url: .*
   script: main.py
   secure: optional

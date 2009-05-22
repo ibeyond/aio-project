@@ -1,0 +1,16 @@
+{% extends '../layout.html' %}
+{% block title %} Blogger {% endblock %}
+{% block javascript %}
+{% endblock %}
+{% block contents %}
+<h1>Blogger</h1>
+<a href='/blogger/update_blog'>Update Blogger</a>
+{% if blogger_list %}
+{% for blog in blogger_list %}
+<li><a href='/blogger/show_blog?blog_id={{ blog.n_id }}'>{{ blog.title }}</a></li>
+{%for c in blog.category %}
+{{ c }} |
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endblock %}

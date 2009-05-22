@@ -1,0 +1,40 @@
+{% extends '../layout.html' %}
+{% block title %} Twitter {% endblock %}
+{% block javascript %}
+{% endblock %}
+{% block contents %}
+<h1>Google Reader Shared</h1>
+<div id="date_nav">
+<a href="/greader/show?date={{ local_now|datetz:"Y-m-d" }}">today</a>
+{% for tl in time_links %}
+| <a href="/greader/show?date={{ tl|datetz:"Y-m-d" }}">{{ tl|datetz:"Y-m-d" }}</a> 
+{% endfor %}
+</div>
+
+<div id="greader_shared_panel">
+{% if shared_posts %}
+<table border="1" width="800">
+	<caption>Google Reader Shared</caption>
+	<tbody>
+{% for s in shared_posts %}
+	<tr>
+	<td>
+	<a href="{{ s.url }}">{{ s.title }}</a>
+	</td>
+	<td>
+	{% if s.comment %}
+	{{ s.comment }}
+	{% else %}
+	&nbsp;
+	{% endif %}
+	</td>
+	<td>
+	{{ s.published_at|datetz:"Y-m-d"}}
+	</td>
+	</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+</div>
+{% endblock %}

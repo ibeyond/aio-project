@@ -2,34 +2,34 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
+<meta name="verify-v1"
+	content="CNEMoyVizjTTvHbuaQUVcbBRGMmAmd9jqscFI9+l7JY=" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>{% block title %} All In One {% endblock %}</title>
 <script src="http://www.google.com/jsapi"></script>
 <script>
-  // Load jQuery
   google.load("jquery", "1");
 </script>
+<script type="text/javascript" src="/js/jquery.form.js"></script> 
 {% block javascript %}{% endblock %}
-<style type=""></style> 
+<style type=""></style>
+{% block style %}{% endblock %}
 </head>
 <body>
 <div id="nav">
-<li><a href="/">Home</a></li>
-<li><a href="/twitter">Twitter</a></li>
-<li>Welcome, 
-{% if user %}
-<a href="/profile/{{ user.email }}">{{ user.nickname }}</a> | <a href="{{ logout_url }}">退出</a>
-{% else %}
-guest |<a href="{{ login_url }}">登录</a>
+<a href="/">Home</a> | 
+{% if user %} 
+<a href="/twitter">Twitter</a> | 
+<a href="/greader">Google Reader</a> | 
+<a href="/blogger">Blogger</a> | 
+<a href="/admin">Admin</a> | 
+<a href="/profile/{{ user.email }}">{{ user.nickname }}</a> | 
+<a href="{{ logout_url }}">退出</a> 
+{% else %} 
+<a href="{{ login_url }}">登录</a>
 {% endif %}
-</li>
 </div>
-<div id="contents">
-{% block contents %}
-{% endblock %}
-</div>
-<div id="footer">
-copy right iBeyond@2009
-</div>
+<div id="contents">{% block contents %} {% endblock %}</div>
+<div id="footer">iBeyond@2009</div>
 </body>
 </html>
