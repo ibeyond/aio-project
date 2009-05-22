@@ -25,20 +25,17 @@ class Cron(webapp.RequestHandler):
             service = OAuthService.all().filter('user =', local_user.user).filter('service_name =', 'twitter').get()
             if service is not None:
                 twitter_user = TwitterUser.all().filter('user_id =',service.user_id).get()
+                user_info = simplejson.loads(apps.get_data_from_signed_url(Cron.twitter_user_show_url, service, **{'user_id':service.user_id}))
+                user_info = dict((str(k), v) for k, v in user_info.items())
+                user_info['user_id'] = str(user_info['id'])
                 if twitter_user is None:
-                    user_info = simplejson.loads(apps.get_data_from_signed_url(Cron.twitter_user_show_url, service, **{'user_id':service.user_id}))
-                    user_info = dict((str(k), v) for k, v in user_info.items())
-                    user_info['user_id'] = str(user_info['id'])
                     twitter_user = TwitterUser(user=service.user, **user_info)
-                    twitter_user.put()
+
                 else:
-                    user_info = simplejson.loads(apps.get_data_from_signed_url(Cron.twitter_user_show_url, service, **{'user_id':service.user_id}))
-                    user_info = dict((str(k), v) for k, v in user_info.items())
-                    user_info['user_id'] = str(user_info['id'])
                     del user_info['id']
                     for k, v in user_info.items():
                         twitter_user.__setattr__(k , v)
-                    twitter_user.put()
+                twitter_user.put()
                 status = simplejson.loads(apps.get_data_from_signed_url(Cron.twitter_user_timeline_url, service, **{'count':twitter_max_count}), apps.encoding)
                 add_status(status, service.user, twitter_user)
                 
