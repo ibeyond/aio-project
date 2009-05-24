@@ -6,8 +6,7 @@
 <h1>Twitter</h1>
 <div id="twitter_user_panel">
 {% if user_info %}
-<table border="1">
-<caption>Twitter User</caption>
+<table>
 <tbody>
 <tr>
 <td><img src="{{ user_info.profile_image_url }}" /></td>
@@ -21,35 +20,10 @@
 </table>
 {% endif %}
 </div>
-{% if blog_site %}
-<a href="/blogger/update_blog">Update blogger</a>
-<div id='blog_panel'>
-{{ twitter_blog_label}}
-<br />
-<form action="/twitter/link_blog" method="post">
-Blog Site:
-<select name="blog_label" id="blog_label">
-<option>======</option>
-{% for blog in blog_site %}
-{% for c in blog.category %} 
-<option value="{{ user_info.user_id }}_{{ blog.n_id }}_{{ c }}">{{blog.title}}->{{ c }}</option>
-{% endfor %}
-<option>======</option>
-{% endfor %} 
-</select>
-<input type="submit">
-</form>
-<form action="/twitter/post_to_blog">
-<input type="hidden" value="{{ date_param }}" name="date_param">
-<input type="hidden" value="{{ user_info.user_id }}" name="twitter_id">
-<input type="submit" value="post to blog">
-</form>
-</div>
-{% endif %}
 <div id="date_nav">
 <a href="/twitter">today</a>
 {% for tl in time_links %}
-| <a href="/twitter/show?date={{ tl|datetz:"Y-m-d" }}">{{ tl|datetz:"Y-m-d" }}</a> 
+| <a href="/twitter/?date={{ tl|datetz:"Y-m-d" }}">{{ tl|datetz:"Y-m-d" }}</a> 
 {% endfor %}
 </div>
 {% include 'twitter_list.html' %}

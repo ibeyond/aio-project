@@ -1,1 +1,0 @@
-{% if twitter_status %}<ul>{% for s in twitter_status %}<li>{{ s.published_at|datetz:"H:i:s" }} {{ s.text|replace_link }} <a href="https://twitter.com/{{ s.twitter_user.name }}/status/{{ s.status_id }}">#</a></li>{% endfor %}</ul>{% endif %}

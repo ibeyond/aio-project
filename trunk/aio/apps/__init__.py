@@ -19,11 +19,6 @@ import simplejson, os, logging, re
 
 site_list = ['twitter','blogger']
 
-twitter_status_counter = 'twitter_status'
-
-google_consumer_key = 'aio.appspot.com'
-google_consumer_secret = 'sLhPEOYV9DBcMeSTwmdZqbAC'
-
 encoding = 'utf-8'
 
 timedelta_seconds = 28800
@@ -146,17 +141,19 @@ def reg_account(user):
             account = AIOBase(user=user).put()
             memcache.add(user.email(), account)
 
-def get_request_token_info(__service):
-    return get_data_from_signed_url(__service.request_token_url,__service)
+def get_request_token_info(__service, __meth='GET', **extra_params):
+    return get_data_from_signed_url(__service.request_token_url,__service, __meth, **extra_params)
 
 def get_data_from_signed_url(__url, __service, __meth='GET', **extra_params):
-    if __meth != 'GET':
-        headers = get_auth_headers(__url, __service, __meth, **extra_params)
-        method = urlfetch.POST
-        return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=method, headers=headers).content
-    else:
-        return urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params)).content
-
+#    if __service.oauth_token is not None:
+#        method = urlfetch.POST
+#        if __meth == 'GET':
+#            method = urlfetch.GET
+#        headers = get_auth_headers(__url, __service, __meth, **extra_params)
+#        return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=method, headers=headers).content
+#    else:
+    return urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params)).content
+    
 def get_signed_url(__url, __service, __meth='GET', **extra_params):
     kwargs = {
         'oauth_consumer_key': __service.consumer_key,
@@ -183,35 +180,19 @@ def get_signed_url(__url, __service, __meth='GET', **extra_params):
     kwargs['oauth_signature'] = hmac(
         key, message, sha1
         ).digest().encode('base64')[:-1]
-#    logging.info('#### [%s] ####' % '%s?%s' % (__url, urlencode(kwargs)))
+    logging.info('#### [%s] ####' % '%s?%s' % (__url, urlencode(kwargs)))
     return '%s?%s' % (__url, urlencode(kwargs))
 
 def get_auth_headers(__url,__service, __meth='GET', **params):
     message_info = get_signed_url(__url, __service, __meth, **params)
     auth = ','.join(message_info.split('?')[1].split('&'))
+    logging.info({r'Authorization':r'OAuth realm="%s",%s' % (__service.realm, auth)})
     return {'Authorization':'OAuth realm="%s",%s' % (__service.realm, auth)}
 
 
 def encode(text):
     return urlquote(str(text), '')
 
-def add_count(user, name, count):
-    counter = Counter.all().filter('user =', user).filter('name =', name).get()
-    if counter is None:
-        counter = Counter(user=user, name=name, value=count)
-    else:
-        counter.value += count
-    counter.put()
-    
-def get_count(user, name, init_value=0):
-    counter = Counter.all().filter('user =', user).filter('name =', name).get()
-    if counter is None:
-        counter = Counter(user=user, name=name, value=init_value)
-        counter.put()
-    return counter.value
-
-def reset_counter(user, name):
-    db.delete(Counter.all().filter('user =', user).filter('name =', name))
       
 class UserSharedSite(db.Model):
     user = db.UserProperty()

@@ -52,7 +52,7 @@ indexes:
   - name: created
     direction: desc
 
-# Used 60 times in query history.
+# Used 30 times in query history.
 - kind: OAuthService
   properties:
   - name: user
