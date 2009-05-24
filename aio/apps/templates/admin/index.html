@@ -92,6 +92,44 @@ self_reload = function(data,status){
 		<td>name:</td>
 		<td>
 			<select name="service_name" id="service_name">
+				<option value="blogger">blogger</option>
+		</td>
+	</tr>
+	<tr>
+		<td>realm:</td>
+		<td><input type="text" name="realm" id="realm" value="http://www.google.com/" size="50"></td>
+	</tr>
+	<tr>
+		<td>consumer_key:</td>
+		<td><input type="text" name="consumer_key" id="consumer_key" value="aio.appspot.com" size="50"></td>
+	</tr>
+	<tr>
+		<td>consumer_secret:</td>
+		<td><input type="text" name="consumer_secret" id="consumer_secret" value="sLhPEOYV9DBcMeSTwmdZqbAC" size="50"></td>
+	</tr>
+	<tr>
+		<td>request_token_url:</td>
+		<td><input type="text" name="request_token_url" id="request_token_url" value="https://www.google.com/accounts/OAuthGetRequestToken" size="50"></td>
+	</tr>
+	<tr>
+		<td>access_token_url:</td>
+		<td><input type="text" name="access_token_url" id="access_token_url" value="https://www.google.com/accounts/OAuthGetAccessToken" size="50"></td>
+	</tr>
+	<tr>
+		<td>user_auth_url:</td>
+		<td><input type="text" name="user_auth_url" id="user_auth_url" size="50" value="https://www.google.com/accounts/OAuthAuthorizeToken"></td>
+	</tr>
+	<tr>
+		<td colspan="2"><input type="submit" id="add_service" value="add Service"></td>
+	</tr>
+</table>
+</form>
+<form id="add_service" action="/admin/add_service" method="post">
+<table border="1">
+	<tr>
+		<td>name:</td>
+		<td>
+			<select name="service_name" id="service_name">
 				{% for v in site_list %}
 				<option value="{{ v }}">{{ v }}</option>
 				{% endfor %}
@@ -126,7 +164,6 @@ self_reload = function(data,status){
 		<td colspan="2"><input type="submit" id="add_service" value="add Service"></td>
 	</tr>
 </table>
-
 </form>
 <h2>keyword</h2>
 {% if keywords %}

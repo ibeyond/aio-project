@@ -1,17 +1,21 @@
 ## -*- coding: utf-8 -*-
 
-from apps.stored import AIOBase, TwitterUser, OAuthService, TwitterStatus
-from google.appengine.ext import webapp
+from apps.stored import AIOBase, TwitterUser, OAuthService, TwitterStatus, Counter
+from google.appengine.ext import webapp, db
 from google.appengine.api import memcache
 import simplejson
 from datetime import datetime
 
 import apps, logging
 
+twitter_user_show_url = 'https://twitter.com/users/show.json'
+twitter_user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
+twitter_status_counter = 'twitter_status'
+twitter_import_counter = 'twitter_import'
+twitter_max_count = 10
 
 class Cron(webapp.RequestHandler):
-    twitter_user_show_url = 'https://twitter.com/users/show.json'
-    twitter_user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
+    
     def get(self, action):
         getattr(self, action, self.index)()
         pass
@@ -20,27 +24,41 @@ class Cron(webapp.RequestHandler):
         self.redirect('/')
         
     def twitter_update(self):
-        twitter_max_count = 10
         for local_user in AIOBase.all().order('-created'):
             service = OAuthService.all().filter('user =', local_user.user).filter('service_name =', 'twitter').get()
             if service is not None:
                 twitter_user = TwitterUser.all().filter('user_id =',service.user_id).get()
-                user_info = simplejson.loads(apps.get_data_from_signed_url(Cron.twitter_user_show_url, service, **{'user_id':service.user_id}))
+                logging.info(apps.get_data_from_signed_url(twitter_user_show_url, service, **{'user_id':service.user_id}))
+                user_info = simplejson.loads(apps.get_data_from_signed_url(twitter_user_show_url, service, **{'user_id':service.user_id}))
                 user_info = dict((str(k), v) for k, v in user_info.items())
                 user_info['user_id'] = str(user_info['id'])
                 if twitter_user is None:
                     twitter_user = TwitterUser(user=service.user, **user_info)
-
                 else:
                     del user_info['id']
                     for k, v in user_info.items():
                         twitter_user.__setattr__(k , v)
                 twitter_user.put()
-                status = simplejson.loads(apps.get_data_from_signed_url(Cron.twitter_user_timeline_url, service, **{'count':twitter_max_count}), apps.encoding)
+                status = simplejson.loads(apps.get_data_from_signed_url(twitter_user_timeline_url, service, **{'count':twitter_max_count}), apps.encoding)
                 add_status(status, service.user, twitter_user)
                 
+    def twitter_import(self):
+        for local_user in AIOBase.all().order('-created'):
+            service = OAuthService.all().filter('user =', local_user.user).filter('service_name =', 'twitter').get()
+            if service is not None:
+                twitter_user = TwitterUser.all().filter('user_id =',service.user_id).get()
+                if (get_count(twitter_user.user, twitter_status_counter) < twitter_user.statuses_count):
+                    if ((get_count(twitter_user.user, twitter_import_counter, init_value=2) - 1) * twitter_max_count) > twitter_user.statuses_count:
+                        if get_count(twitter_user.user, twitter_import_counter) > 2:
+                            reset_counter(twitter_user.user, twitter_import_counter)
+                    page_no = get_count(user=twitter_user.user, name=twitter_import_counter, init_value=2)
+                    status = simplejson.loads(apps.get_data_from_signed_url(twitter_user_timeline_url, service, **{'page':page_no, 'count':5}), apps.encoding)
+                    add_status(status, service.user, twitter_user)
+                    add_count(service.user, twitter_import_counter, 1)
+                else:
+                    reset_counter(service.user, twitter_import_counter)
+                
 def add_status(status, user, twitter_user):
-    logging.info(status)
     for s in status:
         s = dict((str(k), v) for k, v in s.items())
         s['status_id'] = s['id']
@@ -53,7 +71,26 @@ def add_status(status, user, twitter_user):
                 twitter_entry = TwitterStatus(user=user, twitter_user=twitter_user, **s)
                 twitter_entry.put()
                 memcache.add(str(s['status_id']), twitter_entry)
-                apps.add_count(user, apps.twitter_status_counter, 1)
+                add_count(user, twitter_status_counter, 1)
+
+def add_count(user, name, count):
+    counter = Counter.all().filter('user =', user).filter('name =', name).get()
+    if counter is None:
+        counter = Counter(user=user, name=name, value=count)
+    else:
+        counter.value += count
+    counter.put()
+    
+def get_count(user, name, init_value=0):
+    counter = Counter.all().filter('user =', user).filter('name =', name).get()
+    if counter is None:
+        counter = Counter(user=user, name=name, value=init_value)
+        counter.put()
+    return counter.value
+
+def reset_counter(user, name):
+    db.delete(Counter.all().filter('user =', user).filter('name =', name))
+            
 #        
 #    def greader_import(self):
 #        from apps.greader import GoogleReader
@@ -98,20 +135,7 @@ def add_status(status, user, twitter_user):
 #    
 
 #    
-#    def twitter_import(self):
-#        for twitter_user in TwitterUser.all():
-#            access_token = OAuthAccessToken.all().filter('user =', twitter_user.user).get()
-#            if access_token is not None:
-#                if (apps.get_count(twitter_user.user, Twitter.twitter_status_counter) < twitter_user.statuses_count):
-#                    if ((apps.get_count(twitter_user.user, Cron.twitter_import_counter, init_value=2) - 1) * Cron.twitter_max_count) > twitter_user.statuses_count:
-#                        if apps.get_count(twitter_user.user, Cron.twitter_import_counter) > 2:
-#                            apps.reset_counter(twitter_user.user, Cron.twitter_import_counter)
-#                    page_no = apps.get_count(user=twitter_user.user, name=Cron.twitter_import_counter, init_value=2)
-#                    status = simplejson.loads(apps.get_data_from_signed_url(Twitter.user_timeline_url, access_token, **{'page':page_no, 'count':5}), apps.encoding)
-#                    apps.add_status(status, access_token.user, twitter_user)
-#                    apps.add_count(twitter_user.user, Cron.twitter_import_counter, 1)
-#                else:
-#                    apps.reset_counter(twitter_user.user, Cron.twitter_import_counter)
+
 #                    
 #    def twitter_to_blog(self):
 #        pass
