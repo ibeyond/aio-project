@@ -11,9 +11,6 @@ class Home(webapp.RequestHandler):
     欢迎页
     '''
     def get(self):
-        from apps.stored import TwitterStatus
-        from google.appengine.ext import db
-        db.delete(TwitterStatus.all().fetch(400))
         page_data = {}
         user = users.get_current_user()
         if user:

@@ -5,8 +5,9 @@ from apps import Error
 from apps.twitter import Twitter
 from apps.cron import Cron
 from apps.admin import Admin
+from apps.clean import Clean
 #from apps.greader import GoogleReader
-#from apps.blogger import Blogger
+from apps.blogger import Blogger
 
 webapp.template.register_template_library('apps.tags') 
 
@@ -16,12 +17,13 @@ urls = [
         (r'/twitter/(.*)', Twitter),
 #        (r'/greader', GoogleReader),
 #        (r'/greader/(.*)', GoogleReader),
-#        (r'/blogger', Blogger),
-#        (r'/blogger/(.*)', Blogger),
+        (r'/blogger', Blogger),
+        (r'/blogger/(.*)', Blogger),
         (r'/admin', Admin),
         (r'/admin/(.*)', Admin),
         (r'/cron/(.*)', Cron),
         (r'/error', Error),
+        (r'/clean', Clean),
         ]
 
 application = webapp.WSGIApplication(urls, debug=True)
