@@ -145,14 +145,22 @@ def get_request_token_info(__service, __meth='GET', **extra_params):
     return get_data_from_signed_url(__service.request_token_url,__service, __meth, **extra_params)
 
 def get_data_from_signed_url(__url, __service, __meth='GET', **extra_params):
-#    if __service.oauth_token is not None:
-#        method = urlfetch.POST
-#        if __meth == 'GET':
-#            method = urlfetch.GET
-#        headers = get_auth_headers(__url, __service, __meth, **extra_params)
-#        return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=method, headers=headers).content
-#    else:
-    return urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params)).content
+    if __service.service_name == 'twitter' and __meth == 'GET':
+        return urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params)).content
+    if __service.oauth_token is not None:
+        method = urlfetch.POST
+        if __meth == 'GET':
+            method = urlfetch.GET
+        headers = get_auth_headers(__url, __service, __meth, **extra_params)
+        if __service.realm == 'https://www.blogger.com/feeds/':
+            headers['Content-Type'] = 'application/atom+xml'
+        if extra_params['body'] is not None:
+            logging.info(urlquote(extra_params['body']))
+            logging.info(extra_params['body'])
+            return urlfetch.fetch(url=__url,payload=extra_params['body'],method=method, headers=headers).content
+        return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=method, headers=headers).content
+    else:
+        return urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params)).content
     
 def get_signed_url(__url, __service, __meth='GET', **extra_params):
     kwargs = {
@@ -180,13 +188,12 @@ def get_signed_url(__url, __service, __meth='GET', **extra_params):
     kwargs['oauth_signature'] = hmac(
         key, message, sha1
         ).digest().encode('base64')[:-1]
-    logging.info('#### [%s] ####' % '%s?%s' % (__url, urlencode(kwargs)))
     return '%s?%s' % (__url, urlencode(kwargs))
 
 def get_auth_headers(__url,__service, __meth='GET', **params):
     message_info = get_signed_url(__url, __service, __meth, **params)
-    auth = ','.join(message_info.split('?')[1].split('&'))
-    logging.info({r'Authorization':r'OAuth realm="%s",%s' % (__service.realm, auth)})
+    auth = ', '.join(message_info.split('?')[1].split('&'))
+    logging.info({r'Authorization':'OAuth realm=%s, %s' % (str(__service.realm), str(auth))})
     return {'Authorization':'OAuth realm="%s",%s' % (__service.realm, auth)}
 
 

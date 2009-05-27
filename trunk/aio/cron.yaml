@@ -3,14 +3,14 @@ cron:
   url: /cron/twitter_update
   schedule: every 1 minutes
   
-- description: import Twitter
-  url: /cron/twitter_import
-  schedule: every 1 minutes
+#- description: import Twitter
+#  url: /cron/twitter_import
+#  schedule: every 1 minutes
 
-- description: sync GReader
-  url: /cron/greader_import
-  schedule: every 1 minutes
+#- description: sync GReader
+#  url: /cron/greader_import
+#  schedule: every 1 minutes
 
-- description: sync GReader
-  url: /cron/twitter_to_blog
-  schedule: every 1 minutes
+#- description: sync GReader
+#  url: /cron/twitter_to_blog
+#  schedule: every 1 minutes

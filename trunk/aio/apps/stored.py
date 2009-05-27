@@ -57,3 +57,14 @@ class TwitterStatus(AIOBase):
     twitter_user_id = db.IntegerProperty()
     published_at = db.DateTimeProperty()
     created_at = db.StringProperty()
+    
+class BlogSite(AIOBase):
+    link = db.StringProperty()
+    category = db.StringListProperty()
+    blog_id = db.StringProperty()
+    title = db.StringProperty()
+    summary = db.StringProperty()
+
+class TwitterBlog(AIOBase):
+    blog_id = db.StringProperty()
+    category = db.StringProperty()

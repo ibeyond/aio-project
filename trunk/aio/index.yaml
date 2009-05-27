@@ -17,6 +17,13 @@ indexes:
   - name: created
     direction: desc
 
+# Used 35 times in query history.
+- kind: BlogSite
+  properties:
+  - name: user
+  - name: updated
+    direction: desc
+
 # Unused in query history -- copied from input.
 - kind: BloggerSite
   properties:
@@ -52,7 +59,7 @@ indexes:
   - name: created
     direction: desc
 
-# Used 30 times in query history.
+# Used 62 times in query history.
 - kind: OAuthService
   properties:
   - name: user
@@ -81,7 +88,7 @@ indexes:
   - name: published_at
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used 7 times in query history.
 - kind: TwitterStatus
   properties:
   - name: twitter_user

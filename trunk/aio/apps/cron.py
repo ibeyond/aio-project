@@ -1,12 +1,12 @@
 ## -*- coding: utf-8 -*-
 
-from apps.stored import AIOBase, TwitterUser, OAuthService, TwitterStatus, Counter
+from apps.stored import AIOBase, TwitterUser, OAuthService, TwitterStatus, Counter, TwitterBlog
 from google.appengine.ext import webapp, db
 from google.appengine.api import memcache
 import simplejson
 from datetime import datetime
 
-import apps, logging
+import apps, logging, gdata, atom
 
 twitter_user_show_url = 'https://twitter.com/users/show.json'
 twitter_user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
@@ -57,6 +57,21 @@ class Cron(webapp.RequestHandler):
                     add_count(service.user, twitter_import_counter, 1)
                 else:
                     reset_counter(service.user, twitter_import_counter)
+    
+    def post_to_blog(self):
+        for twitter_blog in TwitterBlog.all().order('-created'):
+            blog_id = twitter_blog.blog_id.split('-')[-1]
+            token = OAuthService.all().filter('user =', twitter_blog.user).filter('service_name', 'blogger').get()
+            blog_url = token.realm + blog_id + '/posts/default'
+            entry = get_post('title', 'contents', 'twitter')
+            logging.info(apps.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry}))
+
+def get_post(title, content, category):
+    entry = gdata.GDataEntry()
+    entry.title = atom.Title('xhtml', title)
+    entry.content = atom.Content(content_type='html', text=content)
+    entry.category = atom.Category(term=category, scheme='http://www.blogger.com/atom/ns#')
+    return entry.ToString(apps.encoding)
                 
 def add_status(status, user, twitter_user):
     for s in status:
