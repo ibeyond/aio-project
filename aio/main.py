@@ -2,12 +2,13 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from apps.home import Home
 from apps import Error
+
 from apps.twitter import Twitter
 from apps.cron import Cron
 from apps.admin import Admin
 from apps.clean import Clean
-#from apps.greader import GoogleReader
 from apps.blogger import Blogger
+from apps.keyword import Keyword
 
 webapp.template.register_template_library('apps.tags') 
 
@@ -15,10 +16,10 @@ urls = [
         (r'/', Home),
         (r'/twitter', Twitter),
         (r'/twitter/(.*)', Twitter),
-#        (r'/greader', GoogleReader),
-#        (r'/greader/(.*)', GoogleReader),
         (r'/blogger', Blogger),
         (r'/blogger/(.*)', Blogger),
+        (r'/keyword', Keyword),
+        (r'/keyword/(.*)', Keyword),
         (r'/admin', Admin),
         (r'/admin/(.*)', Admin),
         (r'/cron/(.*)', Cron),
