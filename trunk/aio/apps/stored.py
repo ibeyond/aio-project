@@ -68,3 +68,7 @@ class BlogSite(AIOBase):
 class TwitterBlog(AIOBase):
     blog_id = db.StringProperty()
     category = db.StringProperty()
+
+class Keyword(AIOBase):
+    name = db.StringProperty()
+    value = db.StringProperty()

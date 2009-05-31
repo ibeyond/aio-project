@@ -52,6 +52,13 @@ indexes:
   - name: created
     direction: desc
 
+# Used once in query history.
+- kind: Keyword
+  properties:
+  - name: user
+  - name: updated
+    direction: desc
+
 # Unused in query history -- copied from input.
 - kind: OAuthAccessToken
   properties:
@@ -88,7 +95,7 @@ indexes:
   - name: published_at
     direction: desc
 
-# Used 7 times in query history.
+# Used 10 times in query history.
 - kind: TwitterStatus
   properties:
   - name: twitter_user

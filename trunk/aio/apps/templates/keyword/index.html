@@ -1,0 +1,22 @@
+{% extends '../layout.html' %}
+{% block title %} Keyword {% endblock %}
+{% block javascript %}
+{% endblock %}
+{% block contents %}
+<h1>Keyword</h1>
+{% if keywords %}
+<table border="1">
+{% for keyword in keywords %}
+<tr>
+<td width="50">{{ keyword.name }}</td>
+<td width="300">{{ keyword.value }}</td>
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+<form action="/keyword/add_keyword" method="POST">
+<input type="text" id="key_name" name="key_name" />
+<input type="text" id="key_value" name="key_value" />
+<input type="submit" value="add keyword" />
+</form> 
+{% endblock %}

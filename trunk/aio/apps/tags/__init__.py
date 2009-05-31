@@ -22,7 +22,7 @@ def replace_link (str):
     str = p.sub('(<a href="\g<1>" title="\g<1>">url</a>)',str)
     p = re.compile(r'@(?P<name>\w+\b)')
     str = p.sub('@<a href="https://twitter.com/\g<1>">\g<1></a>',str)
-    from apps import Keyword
+    from apps.stored import Keyword
     for keyword in Keyword.all():
         p = re.compile(r'(?P<name>\b%s\b(?![.]))' % keyword.name, re.IGNORECASE)
         str = p.sub('<a href="%s">\g<1></a>' % keyword.value,str)

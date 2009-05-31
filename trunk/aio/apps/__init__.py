@@ -53,7 +53,8 @@ class AIOProcessor(webapp.RequestHandler):
                             'templates/%s/%s.html' % (self.__class__.__name__.lower(), action))
         try:
             self.response.out.write(template.render(path, self.page_data))
-        except:
+        except Exception, e:
+            logging.exception(e)
             path = os.path.join(os.path.dirname(__file__), 
                             'templates/%s/%s.html' % (self.__class__.__name__.lower(), 'index'))
             self.response.out.write(template.render(path, self.page_data))
@@ -67,18 +68,16 @@ class AIOProcessor(webapp.RequestHandler):
         self.write = self.response.out.write
         self.user = users.get_current_user()
         self.result = {}
-        self.result['type'] = 'json' 
+        self.result['type'] = 'json'
+        self.result['body'] = None  
         try:
             getattr(self, action)()
             if self.result['type'] == 'json':
                 self.response.headers['Content-Type'] ='application/json;charset=%s' % encoding
-                self.write(self.dumps(self.result['body']))
+                if self.result['body'] is not None: self.write(self.dumps(self.result['body']))
             else:
-                if self.result['type'] == 'html':
-                    self.response.headers['Content-Type'] ='application/html;charset=%s' % encoding
-                else:
-                    self.response.headers['Content-Type'] ='application/%s' % self.response_type
-                self.write(self.result['body'])
+                self.response.headers['Content-Type'] ='application/%s; charset=%s' % (self.result['type'] ,encoding)
+                if self.result['body'] is not None: self.write(self.result['body'])
         except Exception, e:
             logging.exception(e)
             self.redirect(self.__class__.__name__.lower())
@@ -200,19 +199,6 @@ def get_auth_headers(__url,__service, __meth='GET', **params):
 def encode(text):
     return urlquote(str(text), '')
 
-      
-class UserSharedSite(db.Model):
-    user = db.UserProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-    name = db.StringProperty()
-    url = db.StringProperty()  
-    
-class Keyword(db.Model):
-    user = db.UserProperty()
-    name = db.StringProperty()
-    value = db.StringProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-
 class GReaderSharedPost(db.Model):
     user =db.UserProperty()
     created = db.DateTimeProperty(auto_now_add=True)
@@ -224,9 +210,6 @@ class GReaderSharedPost(db.Model):
     published_at = db.DateTimeProperty()
     published = db.StringProperty() 
 
-class GReaderSharedUrl(db.Model):
-    user = db.UserProperty()
-    user_id = db.StringProperty()
 
 def datetime_format(source):
     """格式化时间"""
@@ -237,48 +220,3 @@ def datetime_format(source):
         last_updated_date_time = last_updated_date_time + timedelta(hours=int(last_time_offset[1:3]))
     return last_updated_date_time   
 
-def get_greader_shared_url(user):
-    from apps.greader import GoogleReader 
-    greader_url = GReaderSharedUrl.all().filter('user =', user).get()
-    if greader_url:
-        return GoogleReader.greader_prefix + greader_url.user_id + GoogleReader.greader_suffix
-    else:
-        return None 
-
-class GoogleToken(db.Model):
-    user = db.UserProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-    service = db.StringProperty()
-    token = db.StringProperty()
-    
-    
-def twitter_to_blog(date, twitter_blog):
-    from apps.blogger import Blogger
-    import gdata
-    import atom
-    from gdata import service
-    last_time = date - timedelta(seconds=timedelta_seconds)
-    from apps.twitter import TwitterStatus 
-    twitter_list = TwitterStatus.all().filter('user =',twitter_blog.user).filter('published_at <', (last_time + timedelta(days=1))).filter('published_at >=', last_time).order('published_at')
-    entry = gdata.GDataEntry()
-    entry.title = atom.Title('xhtml', u'Twitter %s-%s-%s' % (date.year,date.month,date.day))
-    from google.appengine.ext.webapp import template
-    path = get_template_path(__file__, '../twitter/twitter_to_blog.html')
-    entry.content = atom.Content(content_type='html', text=template.render(path, {'twitter_status':twitter_list}))
-    entry.category = [atom.Category(term='twitter',scheme='http://www.blogger.com/atom/ns#')]
-    date += timedelta(days=1)
-    temp = str(date)[:10] + 'T' + str(date)[11:-3] + '+08:00'
-    if len(str(date))<23:
-        temp = str(date)[:10] + 'T' + str(date)[11:] + '.000+08:00'
-    entry.published= atom.Published(temp)
-    auth_token = GoogleToken.all().filter('user =', twitter_blog.user).filter('service =', Blogger.service).get()
-    
-    blogger_service = service.GDataService(service=Blogger.service)
-    print '\n'.join(['%s = %s' % (attr, getattr(blogger_service,attr)) for attr in dir(blogger_service)])
-    gdata.alt.appengine.run_on_appengine(blogger_service)
-    blogger_service.SetAuthSubToken(auth_token.token)
-    logging.info(auth_token.token)
-    blogger_service.Post(entry, Blogger.scopes + '%s/posts/default' % twitter_blog.blog_n_id)
-    
-    
-    

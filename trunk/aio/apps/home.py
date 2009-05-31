@@ -19,6 +19,5 @@ class Home(webapp.RequestHandler):
         write = self.response.out.write
         path = os.path.join(os.path.dirname(__file__), 
                             'templates/%s/%s.html' % (self.__class__.__name__.lower(), 'index'))
-        
         page_data['login_url'] = users.create_login_url('/')
         write(template.render(path, page_data))
