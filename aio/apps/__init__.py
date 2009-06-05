@@ -40,7 +40,7 @@ class AIOProcessor(webapp.RequestHandler):
         self.page_data['user'] = self.user
         self.page_data['logout_url'] = users.create_logout_url('/')
         self.session = sessions.Session()
-        self.redirect_url = None
+        self.template_file = None
         try:
             getattr(self,action)()
         except Exception, e:
@@ -49,8 +49,12 @@ class AIOProcessor(webapp.RequestHandler):
         finally:
             pass
         self.page_data['session'] = self.session
-        path = os.path.join(os.path.dirname(__file__), 
+        if self.template_file is None:
+            path = os.path.join(os.path.dirname(__file__), 
                             'templates/%s/%s.html' % (self.__class__.__name__.lower(), action))
+        else:
+            path = os.path.join(os.path.dirname(__file__), 
+                            'templates/%s/%s.html' % (self.__class__.__name__.lower(), self.template_file))
         try:
             self.response.out.write(template.render(path, self.page_data))
         except Exception, e:
@@ -144,22 +148,18 @@ def get_request_token_info(__service, __meth='GET', **extra_params):
     return get_data_from_signed_url(__service.request_token_url,__service, __meth, **extra_params)
 
 def get_data_from_signed_url(__url, __service, __meth='GET', **extra_params):
-    if __service.service_name == 'twitter' and __meth == 'GET':
+
+    if __meth == 'GET':
         return urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params)).content
     if __service.oauth_token is not None:
-        method = urlfetch.POST
-        if __meth == 'GET':
-            method = urlfetch.GET
         headers = get_auth_headers(__url, __service, __meth, **extra_params)
+        if __service.service_name == 'twitter':
+            return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=method, headers=headers).content
         if __service.realm == 'https://www.blogger.com/feeds/':
             headers['Content-Type'] = 'application/atom+xml'
-        if extra_params['body'] is not None:
-            logging.info(urlquote(extra_params['body']))
-            logging.info(extra_params['body'])
-            return urlfetch.fetch(url=__url,payload=extra_params['body'],method=method, headers=headers).content
-        return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=method, headers=headers).content
-    else:
-        return urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params)).content
+            headers['GData-Version'] = '2'
+            methods ={'POST':urlfetch.POST, 'PUT':urlfetch.PUT, 'DELETE':urlfetch.DELETE} 
+            return urlfetch.fetch(url=__url,payload=extra_params['body'],method=methods[__meth], headers=headers).content
     
 def get_signed_url(__url, __service, __meth='GET', **extra_params):
     kwargs = {
@@ -199,24 +199,29 @@ def get_auth_headers(__url,__service, __meth='GET', **params):
 def encode(text):
     return urlquote(str(text), '')
 
-class GReaderSharedPost(db.Model):
-    user =db.UserProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-    post_id = db.StringProperty(multiline=True)
-    title = db.StringProperty()
-    url = db.StringProperty()
-    comment = db.StringProperty(multiline=True)
-    text = db.TextProperty()
-    published_at = db.DateTimeProperty()
-    published = db.StringProperty() 
-
-
 def datetime_format(source):
     """格式化时间"""
     last_datetime = re.findall(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}', source)[0]
-    last_time_offset = re.findall(r'[Z]|[+|-]{1}\d{2}', source)[0]
+    last_time_offset = re.findall(r'[Z]|[+|-]{1}\d{2}[:]\d{2}$', source)[0]
     last_updated_date_time = datetime.strptime(last_datetime.replace('T',' '),"%Y-%m-%d %H:%M:%S")
     if last_time_offset != 'Z':
         last_updated_date_time = last_updated_date_time + timedelta(hours=int(last_time_offset[1:3]))
     return last_updated_date_time   
 
+def add_count(user, name, count):
+    counter = Counter.all().filter('user =', user).filter('name =', name).get()
+    if counter is None:
+        counter = Counter(user=user, name=name, value=count)
+    else:
+        counter.value += count
+    counter.put()
+    
+def get_count(user, name, init_value=0):
+    counter = Counter.all().filter('user =', user).filter('name =', name).get()
+    if counter is None:
+        counter = Counter(user=user, name=name, value=init_value)
+        counter.put()
+    return counter.value
+
+def reset_counter(user, name):
+    db.delete(Counter.all().filter('user =', user).filter('name =', name))

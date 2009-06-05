@@ -1,0 +1,142 @@
+<h2>OAUHT服务登录</h2>
+<div id="service_list">
+{% if oauth_service %}
+{% for site in oauth_service %}
+<table border="1" width="480">
+	<tr>
+		<td width="100">name:</td>
+		<td>{{ site.service_name }}</td>
+	</tr>
+	<tr>
+		<td>realm:</td>
+		<td>{{ site.realm }}</td>
+	</tr>
+	<tr>
+		<td>consumer_key:</td>
+		<td>{{ site.consumer_key }}</td>
+	</tr>
+	<tr>
+		<td>consumer_secret:</td>
+		<td>{{ site.consumer_secret }}</td>
+	</tr>
+	<tr>
+		<td>request_token_url:</td>
+		<td>{{ site.request_token_url }}</td>
+	</tr>
+	<tr>
+		<td>access_token_url:</td>
+		<td>{{ site.access_token_url }}</td>
+	</tr>
+	<tr>
+		<td>user_auth_url:</td>
+		<td>{{ site.user_auth_url }}</td>
+	</tr>
+	<tr>
+		<td>req_oauth_token:</td>
+		<td>{{ site.req_oauth_token }}</td>
+	</tr>
+	<tr>
+		<td>req_oauth_token_secret:</td>
+		<td>{{ site.req_oauth_token_secret }}</td>
+	</tr>
+	<tr>
+		<td>oauth_token:</td>
+		<td>{{ site.oauth_token }}</td>
+	</tr>
+	<tr>
+		<td>oauth_token_secret:</td>
+		<td>{{ site.oauth_token_secret }}</td>
+	</tr>
+	<tr>
+		<td>user_id:</td>
+		<td>{{ site.user_id }}</td>
+	</tr>
+	<tr>
+		<td colspan="2">
+		<a href="/admin/del_service?key={{ site.key }}">删除服务</a>
+		<a href="/admin/get_token?key={{ site.key }}">取得Token</a>
+		</td>
+	</tr>
+</table>
+{% endfor %}
+{% endif %}
+</div>
+<br />
+<form id="add_service" action="/admin/add_service" method="post">
+<table border="1">
+	<tr>
+		<td>name:</td>
+		<td>
+			<select name="service_name" id="service_name">
+				<option value="blogger">blogger</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>realm:</td>
+		<td><input type="text" name="realm" id="realm" value="https://www.blogger.com/feeds/" size="50"></td>
+	</tr>
+	<tr>
+		<td>consumer_key:</td>
+		<td><input type="text" name="consumer_key" id="consumer_key" value="aio.appspot.com" size="50"></td>
+	</tr>
+	<tr>
+		<td>consumer_secret:</td>
+		<td><input type="text" name="consumer_secret" id="consumer_secret" value="sLhPEOYV9DBcMeSTwmdZqbAC" size="50"></td>
+	</tr>
+	<tr>
+		<td>request_token_url:</td>
+		<td><input type="text" name="request_token_url" id="request_token_url" value="https://www.google.com/accounts/OAuthGetRequestToken" size="50"></td>
+	</tr>
+	<tr>
+		<td>access_token_url:</td>
+		<td><input type="text" name="access_token_url" id="access_token_url" value="https://www.google.com/accounts/OAuthGetAccessToken" size="50"></td>
+	</tr>
+	<tr>
+		<td>user_auth_url:</td>
+		<td><input type="text" name="user_auth_url" id="user_auth_url" size="50" value="https://www.google.com/accounts/OAuthAuthorizeToken"></td>
+	</tr>
+	<tr>
+		<td colspan="2"><input type="submit" id="add_service" value="add Service"></td>
+	</tr>
+</table>
+</form>
+<form id="add_service" action="/admin/add_service" method="post">
+<table border="1">
+	<tr>
+		<td>name:</td>
+		<td>
+			<select name="service_name" id="service_name">
+				<option value="twitter">twitter</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>realm:</td>
+		<td><input type="text" name="realm" id="realm" value="https://twitter.com/" size="50"></td>
+	</tr>
+	<tr>
+		<td>consumer_key:</td>
+		<td><input type="text" name="consumer_key" id="consumer_key" value="VdAyDKInmaNXpbIJOTmLw" size="50"></td>
+	</tr>
+	<tr>
+		<td>consumer_secret:</td>
+		<td><input type="text" name="consumer_secret" id="consumer_secret" value="JqZsh6FGPPjYVdgypRYQbd0Ljl33kZ79EPJQ66pVKQ" size="50"></td>
+	</tr>
+	<tr>
+		<td>request_token_url:</td>
+		<td><input type="text" name="request_token_url" id="request_token_url" value="https://twitter.com/oauth/request_token" size="50"></td>
+	</tr>
+	<tr>
+		<td>access_token_url:</td>
+		<td><input type="text" name="access_token_url" id="access_token_url" value="https://twitter.com/oauth/access_token" size="50"></td>
+	</tr>
+	<tr>
+		<td>user_auth_url:</td>
+		<td><input type="text" name="user_auth_url" id="user_auth_url" size="50" value="https://twitter.com/oauth/authorize"></td>
+	</tr>
+	<tr>
+		<td colspan="2"><input type="submit" id="add_service" value="add Service"></td>
+	</tr>
+</table>
+</form>

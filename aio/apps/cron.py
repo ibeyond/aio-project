@@ -1,12 +1,17 @@
 ## -*- coding: utf-8 -*-
 
-from apps.stored import AIOBase, TwitterUser, OAuthService, TwitterStatus, Counter, TwitterBlog
+from apps.stored import AIOBase, TwitterUser, OAuthService, BlogPost
+from apps.stored import TwitterStatus, Counter, TwitterBlog, BlogSite
 from google.appengine.ext import webapp, db
 from google.appengine.api import memcache
 import simplejson
 from datetime import datetime
 
 import apps, logging, gdata, atom
+
+from apps.blogger import service_name as blogger_service
+
+from feedparser import feedparser
 
 twitter_user_show_url = 'https://twitter.com/users/show.json'
 twitter_user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
@@ -50,32 +55,97 @@ class Cron(webapp.RequestHandler):
             service = OAuthService.all().filter('user =', local_user.user).filter('service_name =', 'twitter').get()
             if service is not None:
                 twitter_user = TwitterUser.all().filter('user_id =',service.user_id).get()
-                if (get_count(twitter_user.user, twitter_status_counter) < twitter_user.statuses_count):
-                    if ((get_count(twitter_user.user, twitter_import_counter, init_value=2) - 1) * twitter_max_count) > twitter_user.statuses_count:
-                        if get_count(twitter_user.user, twitter_import_counter) > 2:
-                            reset_counter(twitter_user.user, twitter_import_counter)
-                    page_no = get_count(user=twitter_user.user, name=twitter_import_counter, init_value=2)
+                if (apps.get_count(twitter_user.user, twitter_status_counter) < twitter_user.statuses_count):
+                    if ((apps.get_count(twitter_user.user, twitter_import_counter, init_value=2) - 1) * twitter_max_count) > twitter_user.statuses_count:
+                        if apps.get_count(twitter_user.user, twitter_import_counter) > 2:
+                            apps.reset_counter(twitter_user.user, twitter_import_counter)
+                    page_no = apps.get_count(user=twitter_user.user, name=twitter_import_counter, init_value=2)
                     status = simplejson.loads(apps.get_data_from_signed_url(twitter_user_timeline_url, service, **{'page':page_no, 'count':5}), apps.encoding)
                     add_status(status, service.user, twitter_user)
-                    add_count(service.user, twitter_import_counter, 1)
+                    apps.add_count(service.user, twitter_import_counter, 1)
                 else:
-                    reset_counter(service.user, twitter_import_counter)
+                    apps.reset_counter(service.user, twitter_import_counter)
     
+    def update_blog_site(self):
+        all_token = OAuthService.all().filter('service_name =', blogger_service)
+        for token in all_token:
+            result = apps.get_data_from_signed_url(token.realm + 'default/blogs', token)
+            feed = atom.CreateClassFromXMLString(atom.Feed, result)
+            for entry in feed.entry:
+                blog = BlogSite.all().filter('blog_id =', entry.id.text).get()
+                if blog is None:
+                    blog = BlogSite(user=token.user)
+                blog.link = entry.GetAlternateLink().href
+                blog.category = [unicode(c.term, apps.encoding) for c in entry.category]
+                blog.title = unicode(entry.title.text, apps.encoding)
+                blog.blog_id = entry.id.text
+                if entry.summary.text is not None:
+                    blog.summary = unicode(entry.summary.text, apps.encoding)
+                blog.put()
+                
+    def update_blog_post(self):
+        all_token = OAuthService.all().filter('service_name =', blogger_service)
+        for token in all_token:
+            blogs = BlogSite.all().filter('user =', token.user).order('-updated')
+            for blog in blogs:
+                result = apps.get_data_from_signed_url(token.realm + blog.blog_id.split('-')[-1] + '/posts/default', token)
+                d = feedparser.parse(result)
+                blog.total_results = int(d.feed.totalresults)
+                blog.put()
+                for entry in d.entries:
+                    add_post(entry, blog.user, blog.blog_id)
+                    
+    def import_blog_post(self):
+        blogs = BlogSite.all().order('-updated')
+        for blog in blogs:
+            imported_cnt = apps.get_count(blog.user, blog.blog_id) 
+            if imported_cnt == blog.total_results:
+                apps.reset_counter(blog.user, '%s_start' % blog.blog_id)
+                continue
+            start = apps.get_count(blog.user, '%s_start' % blog.blog_id, init_value=1)
+            token = OAuthService.all().filter('service_name =', blogger_service).filter('user =', blog.user).get()
+            result = apps.get_data_from_signed_url(token.realm + blog.blog_id.split('-')[-1] + '/posts/default', token, **{'start-index':start})
+            d = feedparser.parse(result)
+            blog.total_results = int(d.feed.totalresults)
+            blog.put()
+            cnt = 0
+            for entry in d.entries:
+                add_post(entry, blog.user, blog.blog_id)
+                cnt += 1
+            apps.add_count(blog.user, '%s_start' % blog.blog_id, cnt)
+            
     def post_to_blog(self):
         for twitter_blog in TwitterBlog.all().order('-created'):
             blog_id = twitter_blog.blog_id.split('-')[-1]
             token = OAuthService.all().filter('user =', twitter_blog.user).filter('service_name', 'blogger').get()
             blog_url = token.realm + blog_id + '/posts/default'
-            entry = get_post('title', 'contents', 'twitter')
+            entry = make_post('title', 'contents', 'twitter')
             logging.info(apps.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry}))
 
-def get_post(title, content, category):
+def make_post(title, content, category):
     entry = gdata.GDataEntry()
     entry.title = atom.Title('xhtml', title)
     entry.content = atom.Content(content_type='html', text=content)
     entry.category = atom.Category(term=category, scheme='http://www.blogger.com/atom/ns#')
     return entry.ToString(apps.encoding)
-                
+
+def add_post(entry, user, blog_id):
+    post = BlogPost.all().filter('post_id =', entry.id).get()
+    if post is None:
+        post = BlogPost(user=user)
+        apps.add_count(user, blog_id, 1)
+    if post.updated_b == entry.updated: return
+    post.blog_id = blog_id
+    post.post_id = entry.id
+    if hasattr(entry, 'title'): post.title = entry.title
+    if hasattr(entry, 'link'): post.link = db.Link(entry.link)
+    if hasattr(entry,'tags'): post.category = [c.term for c in entry.tags]
+    post.published = entry.published
+    post.published_at = apps.datetime_format(entry.published)
+    post.updated_b = entry.updated
+    post.updated_at = apps.datetime_format(entry.updated)
+    post.put()
+    
 def add_status(status, user, twitter_user):
     for s in status:
         s = dict((str(k), v) for k, v in s.items())
@@ -89,82 +159,5 @@ def add_status(status, user, twitter_user):
                 twitter_entry = TwitterStatus(user=user, twitter_user=twitter_user, **s)
                 twitter_entry.put()
                 memcache.add(str(s['status_id']), twitter_entry)
-                add_count(user, twitter_status_counter, 1)
-
-def add_count(user, name, count):
-    counter = Counter.all().filter('user =', user).filter('name =', name).get()
-    if counter is None:
-        counter = Counter(user=user, name=name, value=count)
-    else:
-        counter.value += count
-    counter.put()
-    
-def get_count(user, name, init_value=0):
-    counter = Counter.all().filter('user =', user).filter('name =', name).get()
-    if counter is None:
-        counter = Counter(user=user, name=name, value=init_value)
-        counter.put()
-    return counter.value
-
-def reset_counter(user, name):
-    db.delete(Counter.all().filter('user =', user).filter('name =', name))
-            
-#        
-#    def greader_import(self):
-#        from apps.greader import GoogleReader
-##        memcache.flush_all()
-##        db.delete(GReaderSharedPost.all())
-#        for local_account in LocalAccount.all():
-##            apps.reset_counter(local_account.user,GoogleReader.service)
-#            shared_url = apps.get_greader_shared_url(local_account.user)
-#            if shared_url is None:
-#                return
-#            try:
-#                result = urlfetch.fetch(shared_url)
-#                if result.status_code == 200:
-#                    import atom
-#                    for entry in atom.CreateClassFromXMLString(atom.Feed, result.content).entry:
-#                        post = memcache.get(str(entry.id.text))
-#                        if post is None:
-#                            shared_post =  GReaderSharedPost.all().filter('post_id =',str(entry.id.text)).get()
-#                            if shared_post:
-#                                db.delete(shared_post)
-#                            shared_post = GReaderSharedPost()
-#                            shared_post.post_id = str(entry.id.text)
-#                            shared_post.user = local_account.user
-#                            shared_post.title = unicode(str(entry.title.text), apps.encoding)
-#                            shared_post.url = entry.link[0].href
-#                            from google.appengine.ext.db import Text
-#                            if entry.content is not None:
-#                                shared_post.text = Text(entry.content.text,apps.encoding)
-#                                import re
-#                                p = re.compile(r'^<blockquote>Shared by .+? \n<br>\n(?P<comment>.+?)</blockquote>', re.IGNORECASE)
-#                                if p.search(entry.content.text):
-#                                    comment = p.search(entry.content.text).group('comment')
-#                                    if comment:
-#                                        shared_post.comment = unicode(comment,apps.encoding) 
-#                            shared_post.published_at = apps.datetime_format(entry.published.text)
-#                            shared_post.published = entry.published.text
-#                            shared_post.put()
-#                            apps.add_count(user=local_account.user,name=GoogleReader.service,count=1)
-#                            memcache.add(str(entry.id.text),shared_post)
-#            finally:
-#                pass
-#    
-
-#    
-
-#                    
-#    def twitter_to_blog(self):
-#        pass
-##        from apps.twitter import TwitterToBlog
-##        for twitter_blog in TwitterToBlog.all():
-##            date = datetime.today() - timedelta(days=1)
-##            apps.twitter_to_blog(date, twitter_blog)
-#
-#    def test(self):
-#        for twitter_user in TwitterUser.all():
-#            access_token = OAuthAccessToken.all().filter('user =', twitter_user.user).get()
-#            if access_token is not None:
-#                self.response.out.write(simplejson.dumps(apps.send_to_twitter('https://twitter.com/statuses/update.json',access_token,**{'status':'不追加头[X-Twitter-Client],会正常显示source吗？'}),apps.encoding))
-#            
+                apps.add_count(user, twitter_status_counter, 1)
+        

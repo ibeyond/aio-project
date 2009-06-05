@@ -21,9 +21,9 @@ class Twitter(apps.AIOProcessor):
         memcache.flush_all()
         twitter_user = self.get_twitter_user() 
         self.page_data['user_info'] = twitter_user
-        today = datetime.today();
+        today = datetime.today()
         curr_date = datetime(today.year, today.month, today.day)
-        self.page_data['local_now'] = curr_date
+        self.page_data['local_now'] = curr_date + timedelta(seconds=apps.timedelta_seconds)
         date_param = self.request.get('date') 
         if  date_param != '':
             self.page_data['date_param'] = date_param
