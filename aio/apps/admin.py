@@ -9,7 +9,6 @@ class Admin(apps.AIOProcessor):
     
     def index(self):
         service = OAuthService.all().filter('user =', self.user).filter('service_name =', 'blogger').get()
-        logging.info(unicode(apps.get_data_from_signed_url('https://www.blogger.com/feeds/default/blogs', service),apps.encoding))
         self.page_data['site_list'] = apps.site_list
         self.page_data['oauth_service'] = OAuthService.all().filter('user =', self.user).order('-updated')
     

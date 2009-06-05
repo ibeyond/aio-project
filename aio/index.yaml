@@ -10,7 +10,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 35 times in query history.
+# Used 2 times in query history.
 - kind: BlogPost
   properties:
   - name: blog_id
@@ -24,7 +24,7 @@ indexes:
   - name: created
     direction: desc
 
-# Used 182 times in query history.
+# Used 8 times in query history.
 - kind: BlogSite
   properties:
   - name: user
@@ -59,7 +59,7 @@ indexes:
   - name: created
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Keyword
   properties:
   - name: user
@@ -73,7 +73,7 @@ indexes:
   - name: created
     direction: desc
 
-# Used 63 times in query history.
+# Used 6 times in query history.
 - kind: OAuthService
   properties:
   - name: user
@@ -102,7 +102,7 @@ indexes:
   - name: published_at
     direction: desc
 
-# Used 22 times in query history.
+# Used 3 times in query history.
 - kind: TwitterStatus
   properties:
   - name: twitter_user
