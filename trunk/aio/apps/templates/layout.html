@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="verify-v1"
+	content="CNEMoyVizjTTvHbuaQUVcbBRGMmAmd9jqscFI9+l7JY=" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>{% block title %}Home{% endblock %}</title>
+<style type="text/css">
+<!--	
+#user, #user li, #menu, #menu li{
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+#menu li{
+	float: left;
+}
+#user{
+	float: right;
+}
+#user li{
+	float: right;
+}
+#user li a, #menu li a{
+	display: block;
+	width: 60px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	text-decoration: none;
+}
+a {
+	text-decoration: none;
+}
+#main, #footer{
+	clear:both;
+	position: relative;
+	border-top: 1px solid;
+}
+-->
+</style>
+<script src="http://www.google.com/jsapi"></script>
+<script>
+  // Load jQuery
+  google.load("jquery", "1");
+</script>
+{% block style %}{% endblock %}
+{% block javascript %}{% endblock %}
+</head>
+<body>
+<div id="header">
+	<ul id="menu">
+		<li><a href="/">Home</a></li>
+		{% if user %}
+		<li><a href="/twitter">Twitter</a></li>
+		<li><a href="/blogger">Blogger</a></li>
+		{% endif %}
+	</ul>
+	<ul id="user">
+		{% if user %}
+		<li><a href="{{ logout_url }}">退出</a></li>
+		<li><a href="/profile/{{ user.email }}">{{ user.nickname }}</a></li>
+		<li><a href="/admin">Admin</a></li>
+		{% else %} 
+		<li><a href="{{ login_url }}">登录</a></li>
+		{% endif %}
+	</ul>
+</div>
+<div id="main">
+{% block contents %}{% endblock %}
+</div>
+<div id="footer">
+CopyRight iBeyond@2009
+</div>
+</body>
+</html>
+
