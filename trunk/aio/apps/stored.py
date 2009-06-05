@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from google.appengine.ext import db
+
 class AIOBase(db.Model):
     user = db.UserProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
@@ -64,6 +65,7 @@ class BlogSite(AIOBase):
     blog_id = db.StringProperty()
     title = db.StringProperty()
     summary = db.StringProperty()
+    total_results = db.IntegerProperty()
 
 class TwitterBlog(AIOBase):
     blog_id = db.StringProperty()
@@ -72,3 +74,28 @@ class TwitterBlog(AIOBase):
 class Keyword(AIOBase):
     name = db.StringProperty()
     value = db.StringProperty()
+    
+class BlogPost(AIOBase):
+    blog_id = db.StringProperty()
+    post_id = db.StringProperty()
+    category = db.StringListProperty()
+    title = db.StringProperty()
+    link = db.LinkProperty()
+    published = db.StringProperty()
+    published_at = db.DateTimeProperty()
+    updated_at = db.DateTimeProperty()
+    updated_b = db.StringProperty()
+    
+class SharedSite(AIOBase):
+    name = db.StringProperty()
+    value = db.TextProperty()
+    type = db.StringProperty()
+    
+class SharedPost(AIOBase):
+    post_id = db.StringProperty(multiline=True)
+    title = db.StringProperty()
+    url = db.StringProperty()
+    comment = db.StringProperty(multiline=True)
+    text = db.TextProperty()
+    published_at = db.DateTimeProperty()
+    published = db.StringProperty() 

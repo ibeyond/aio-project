@@ -1,30 +1,26 @@
-{% extends '../layout.html' %}
-{% block title %} Twitter {% endblock %}
-{% block javascript %}
-{% endblock %}
-{% block contents %}
-<h1>Twitter</h1>
-<div id="twitter_user_panel">
-{% if user_info %}
-<table>
-<tbody>
-<tr>
-<td><img src="{{ user_info.profile_image_url }}" /></td>
-<td>
-<span><a href="{{ user_info.url }}">{{ user_info.screen_name }}</a></span>
-<br />
-<span>Updates:{{ user_info.statuses_count }}</span>
-</td>
-</tr>
-</tbody>
-</table>
-{% endif %}
+<div id="twitter">
+	<h2>Twitter</h2>
+	<div id="twitter_user_panel">
+	{% if user_info %}
+	<table>
+		<tbody>
+			<tr>
+				<td><img src="{{ user_info.profile_image_url }}" /></td>
+				<td>
+					<span><a href="{{ user_info.url }}">{{ user_info.screen_name }}</a></span>
+					<br />
+					<span>Updates:{{ user_info.statuses_count }}</span>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	{% endif %}
+	</div>
+	<div id="date_nav">
+		<a href="/twitter">today</a>
+			{% for tl in time_links %}
+			| <a href="/twitter/?date={{ tl|datetz:"Y-m-d" }}">{{ tl|datetz:"Y-m-d" }}</a> 
+			{% endfor %}
+	</div>
+	{% include 'twitter_list.html' %}
 </div>
-<div id="date_nav">
-<a href="/twitter">today</a>
-{% for tl in time_links %}
-| <a href="/twitter/?date={{ tl|datetz:"Y-m-d" }}">{{ tl|datetz:"Y-m-d" }}</a> 
-{% endfor %}
-</div>
-{% include 'twitter_list.html' %}
-{% endblock %}

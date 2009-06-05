@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import apps
-from apps.stored import TwitterStatus
+from apps.stored import TwitterStatus, BlogSite
 from google.appengine.ext import db
 from apps.cron import *
 
@@ -11,4 +11,3 @@ class Clean(apps.AIOProcessor):
         reset_counter(self.user, twitter_status_counter)
         reset_counter(self.user, twitter_import_counter)
         pass
-        

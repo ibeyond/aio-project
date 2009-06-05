@@ -1,2 +1,14 @@
-{% if twitter_status %}<ul>{% for s in twitter_status %}<li><a href="https://twitter/{{s.twitter_user.name}}">{{ s.twitter_user.screen_name }}</a> ({{ s.published_at|datetz:"H:i:s" }}):
-{{ s.text|replace_link }} <a href="https://twitter.com/{{ user_info.name }}/status/{{ s.status_id }}">#</a></li>{% endfor %}</ul>{% endif %}
+{% if twitter_status %}
+<ul>
+{% for s in twitter_status %}
+<li>
+<a href="https://twitter/{{s.twitter_user.name}}">
+{{ s.twitter_user.screen_name }}
+</a>
+({{ s.published_at|datetz:"H:i:s" }}):
+{{ s.text|replace_link }} 
+<a href="https://twitter.com/{{s.twitter_user.name}}/status/{{ s.status_id }}">#</a>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
