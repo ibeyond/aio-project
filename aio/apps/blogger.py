@@ -24,6 +24,7 @@ class Blogger(apps.AIOProcessor):
             return
         self.page_data['blog_id'] = blog_id
         self.template_file = 'edit'
+        self.page_data['action_title'] = 'New'
         
     def edit(self):
         post_id = self.request.get('post_id')
@@ -37,10 +38,25 @@ class Blogger(apps.AIOProcessor):
         d = feedparser.parse(result)
         self.page_data['post_title'] = d.entries[0].title
         self.page_data['post_content'] = d.entries[0].content[0].value
+        if hasattr(d.entries[0], 'tags'):
+            self.page_data['post_tags'] = ','.join([tag.term for tag in d.entries[0].tags])
+        self.page_data['action_title'] = 'Edit'  
+        self.page_data['post_id'] = post_id
         
     def add(self):
+        blog_id = self.request.get('blog_id')
+        post_id = self.request.get('post_id')
+        if blog_id == '' and post_id == '':
+            self.redirect('/blogger')
+            return
         title = self.request.get('title')
-        pass
+        content = self.request.get('content')
+        tags = self.request.get('term').split(',')
+        token = OAuthService.all().filter('user =', self.user).filter('service_name', service_name).get()
+        blog_url = token.realm + blog_id.split('-')[-1] + '/posts/default'
+        entry = apps.make_blog_post(title, content, tags)
+        apps.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry})
+        self.redirect('/blogger')        
     
     def delete(self):
         post_id = self.request.get('post_id')
@@ -55,15 +71,3 @@ class Blogger(apps.AIOProcessor):
         db.delete(post)
         apps.add_count(self.user, post.blog_id, -1)
         self.redirect('/blogger')
-
-    def make_default(self):
-        key = self.request.get('blog')
-        category = self.request.get('category')
-        blog = db.get(key)
-        db.delete(TwitterBlog.all().filter('user =', self.user))
-        twitter_blog = TwitterBlog(user=self.user)
-        twitter_blog.blog_id = blog.blog_id
-        twitter_blog.category = category
-        twitter_blog.put()
-        self.redirect('/blogger')
-        

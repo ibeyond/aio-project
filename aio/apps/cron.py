@@ -5,12 +5,13 @@ from apps.stored import TwitterStatus, Counter, TwitterBlog, BlogSite
 from google.appengine.ext import webapp, db
 from google.appengine.api import memcache
 import simplejson
-from datetime import datetime
+from datetime import datetime, timedelta
 
-import apps, logging, gdata, atom
+import apps, logging, gdata, atom, os
+
+from google.appengine.ext.webapp import template
 
 from apps.blogger import service_name as blogger_service
-
 from feedparser import feedparser
 
 twitter_user_show_url = 'https://twitter.com/users/show.json'
@@ -119,15 +120,15 @@ class Cron(webapp.RequestHandler):
             blog_id = twitter_blog.blog_id.split('-')[-1]
             token = OAuthService.all().filter('user =', twitter_blog.user).filter('service_name', 'blogger').get()
             blog_url = token.realm + blog_id + '/posts/default'
-            entry = make_post('title', 'contents', 'twitter')
+            today = datetime.today()
+            curr_date = datetime(today.year, today.month, today.day)
+            show_date = curr_date
+            curr_date -= timedelta(seconds=apps.timedelta_seconds)
+            path = os.path.join(os.path.dirname(__file__), 
+                            'templates/%s/%s.html' % ('twitter', 'twitter_list'))
+            contents = template.render(path, {'twitter_status':apps.get_twitter_daily(twitter_blog.user, curr_date)})
+            entry = apps.make_blog_post('Twitter Daily(%s)' % (show_date.strftime('%Y-%m-%d')), contents, [twitter_blog.category])
             logging.info(apps.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry}))
-
-def make_post(title, content, category):
-    entry = gdata.GDataEntry()
-    entry.title = atom.Title('xhtml', title)
-    entry.content = atom.Content(content_type='html', text=content)
-    entry.category = atom.Category(term=category, scheme='http://www.blogger.com/atom/ns#')
-    return entry.ToString(apps.encoding)
 
 def add_post(entry, user, blog_id):
     post = BlogPost.all().filter('post_id =', entry.id).get()

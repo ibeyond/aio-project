@@ -14,8 +14,8 @@ from hmac import new as hmac
 from urllib import urlencode, quote as urlquote
 from hashlib import sha1
 from datetime import datetime,timedelta
-from apps.stored import AIOBase, Counter
-import simplejson, os, logging, re
+from apps.stored import *
+import simplejson, os, logging, re, gdata, atom
 
 site_list = ['twitter','blogger']
 
@@ -62,7 +62,6 @@ class AIOProcessor(webapp.RequestHandler):
             path = os.path.join(os.path.dirname(__file__), 
                             'templates/%s/%s.html' % (self.__class__.__name__.lower(), 'index'))
             self.response.out.write(template.render(path, self.page_data))
-        
         pass
         
     def post(self,action):
@@ -92,7 +91,6 @@ class AIOProcessor(webapp.RequestHandler):
         self.redirect('/')
         
     def dumps(self,result):
-        logging.info(simplejson.dumps(result, cls=ComplexEncoder, encoding=encoding))
         return simplejson.dumps(result, cls=ComplexEncoder, encoding=encoding)
     
     def check_params(self, exclude=[]):
@@ -122,7 +120,6 @@ class ComplexEncoder(simplejson.JSONEncoder):
     def default(self, obj):
         from datetime import datetime
         from google.appengine.ext import db
-#        logging.info('obj.type = %s' % type(obj))
         if isinstance(obj, datetime):
             return str(obj)
         elif isinstance(obj, users.User):
@@ -148,18 +145,19 @@ def get_request_token_info(__service, __meth='GET', **extra_params):
     return get_data_from_signed_url(__service.request_token_url,__service, __meth, **extra_params)
 
 def get_data_from_signed_url(__url, __service, __meth='GET', **extra_params):
-
     if __meth == 'GET':
-        return urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params)).content
+        result = urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params))
+        return result.content
     if __service.oauth_token is not None:
+        methods ={'POST':urlfetch.POST, 'PUT':urlfetch.PUT, 'DELETE':urlfetch.DELETE}
         headers = get_auth_headers(__url, __service, __meth, **extra_params)
         if __service.service_name == 'twitter':
-            return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=method, headers=headers).content
+            return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=methods[__meth], headers=headers).content
         if __service.realm == 'https://www.blogger.com/feeds/':
             headers['Content-Type'] = 'application/atom+xml'
             headers['GData-Version'] = '2'
-            methods ={'POST':urlfetch.POST, 'PUT':urlfetch.PUT, 'DELETE':urlfetch.DELETE} 
-            return urlfetch.fetch(url=__url,payload=extra_params['body'],method=methods[__meth], headers=headers).content
+            result = urlfetch.fetch(url=__url,payload=extra_params['body'],method=methods[__meth], headers=headers)
+            return result.content
     
 def get_signed_url(__url, __service, __meth='GET', **extra_params):
     kwargs = {
@@ -190,9 +188,8 @@ def get_signed_url(__url, __service, __meth='GET', **extra_params):
     return '%s?%s' % (__url, urlencode(kwargs))
 
 def get_auth_headers(__url,__service, __meth='GET', **params):
-    message_info = get_signed_url(__url, __service, __meth, **params)
+    message_info = get_signed_url(__url, __service, __meth)
     auth = ', '.join(message_info.split('?')[1].split('&'))
-    logging.info({r'Authorization':'OAuth realm=%s, %s' % (str(__service.realm), str(auth))})
     return {'Authorization':'OAuth realm="%s",%s' % (__service.realm, auth)}
 
 
@@ -225,3 +222,28 @@ def get_count(user, name, init_value=0):
 
 def reset_counter(user, name):
     db.delete(Counter.all().filter('user =', user).filter('name =', name))
+    
+def make_blog_post(title, content, term):
+    entry = gdata.GDataEntry()
+    entry.title = atom.Title('xhtml', title)
+    entry.content = atom.Content(content_type='html', text=content)
+    entry.category = [atom.Category(term=category, scheme='http://www.blogger.com/atom/ns#') for category in term if category != '']
+    return entry.ToString(encoding)
+
+def get_twitter_daily(user, date):
+    data = memcache.get('twitter_%s_%s' %(user.email() ,str(date)))
+    if data is None:
+        data = TwitterStatus.all().filter('twitter_user =', get_twitter_user(user)).filter('published_at <', (date + timedelta(days=1))).filter('published_at >=', date).order('-published_at')
+        memcache.add('twitter_%s_%s' %(user.email() ,str(date)), data)
+    return data
+
+def get_twitter_user(user):
+    twitter_user = memcache.get('twitter_user_%s' % (user.email()))
+    if twitter_user is None:
+        twitter_user = TwitterUser.all().filter('user =', user).get()
+        if twitter_user is None:
+            import apps.cron
+            apps.cron.Cron().twitter_update()
+            twitter_user = TwitterUser.all().filter('user =', user).get()
+            memcache.add('twitter_user+%s' % (user.email), twitter_user)
+    return twitter_user

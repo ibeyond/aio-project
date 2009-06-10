@@ -54,7 +54,9 @@
 	<tr>
 		<td colspan="2">
 		<a href="/admin/del_service?key={{ site.key }}">删除服务</a>
+		{% ifequal oauth_token_secret None %}
 		<a href="/admin/get_token?key={{ site.key }}">取得Token</a>
+		{% endifequal %}
 		</td>
 	</tr>
 </table>

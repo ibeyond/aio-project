@@ -18,3 +18,9 @@ cron:
 - description: import blogger post
   url: /cron/import_blog_post
   schedule: every 1 minutes
+
+  
+- description: twitter post to blogger
+  url: /cron/post_to_blog
+  schedule: every day 01:00
+  timezone: Asia/Shanghai
