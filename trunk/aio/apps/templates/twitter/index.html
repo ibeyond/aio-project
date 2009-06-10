@@ -1,3 +1,5 @@
+{% extends '../layout.html' %}
+{% block contents %}
 <div id="twitter">
 	<h2>Twitter</h2>
 	<div id="twitter_user_panel">
@@ -23,4 +25,8 @@
 			{% endfor %}
 	</div>
 	{% include 'twitter_list.html' %}
+	<div id="setting">
+	<a href="/twitter/setting">Setting</a>
+	</div>
 </div>
+{% endblock %}

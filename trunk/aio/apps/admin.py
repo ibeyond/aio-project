@@ -27,8 +27,9 @@ class Admin(apps.AIOProcessor):
         kwargs = {}
         if service.service_name == 'blogger':
             kwargs['scope'] = 'https://www.blogger.com/feeds'
-            #kwargs['oauth_callback'] = 'https://aio.appspot.com/admin/token?service=blogger'
-            kwargs['oauth_callback'] = 'http://localhost/admin/token?service=blogger'
+            kwargs['oauth_callback'] = 'https://aio.appspot.com/admin/token?service=blogger'
+            if self.request.host == 'localhost':
+                kwargs['oauth_callback'] = 'http://localhost/admin/token?service=blogger'
         token_info = apps.get_request_token_info(service, **kwargs)
         
         token_info = urllib.unquote(token_info)

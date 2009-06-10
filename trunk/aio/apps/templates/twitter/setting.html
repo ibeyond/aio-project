@@ -1,0 +1,32 @@
+{% extends '../layout.html' %}
+{% block contents %}
+<h2>Setting</h2>
+{% if blog_site %}
+{% if twitter_blog %}
+当前默认发布Blog为:{{ twitter_blog_title }} -- {{ twitter_blog.category }}
+<br />
+{% endif %}
+{% for blog in blog_site %}
+{{ blog.title }}
+<br />
+|
+{% for term in blog.category %}
+{% if twitter_blog %}
+	{% ifequal twitter_blog.blog_id blog.blog_id %}
+		{% ifequal twitter_blog.category term %}
+			{{ term }}
+		{% else %} 
+			<a href="/twitter/make_default_blog?blog_id={{ blog.blog_id }}&category={{ term }}">{{ term }}</a>
+		{% endifequal %}
+	{% else %}
+	<a href="/twitter/make_default_blog?blog_id={{ blog.blog_id }}&category={{ term }}">{{ term }}</a>
+	{% endifequal %}
+{% else %}
+	<a href="/twitter/make_default_blog?blog_id={{ blog.blog_id }}&category={{ term }}">{{ term }}</a>
+{% endif %}
+ |
+{% endfor %}
+<br />
+{% endfor %}
+{% endif %}
+{% endblock %}
