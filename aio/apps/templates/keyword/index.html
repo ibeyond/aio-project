@@ -8,15 +8,20 @@
 <table border="1">
 {% for keyword in keywords %}
 <tr>
-<td width="50">{{ keyword.name }}</td>
-<td width="300">{{ keyword.value }}</td>
+<td width="50">{{ keyword.keyword_name }}</td>
+<td width="20">{{ keyword.keyword_category }}</td>
+<td width="300">{{ keyword.keyword_value }}</td>
 </tr>
 {% endfor %}
 </table>
 {% endif %}
 <form action="/keyword/add_keyword" method="POST">
-<input type="text" id="key_name" name="key_name" />
-<input type="text" id="key_value" name="key_value" />
+<input type="text" id="keyword_name" name="keyword_name" />
+<input type="text" id="keyword_value" name="keyword_value" />
+<select id="keyword_category" name="keyword_category">
+<option value="url">URL</option>
+<option value="text">Text</option>
+</select>
 <input type="submit" value="add keyword" />
 </form> 
 {% endblock %}

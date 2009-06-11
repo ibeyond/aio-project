@@ -24,7 +24,7 @@ indexes:
   - name: created
     direction: desc
 
-# Used 57 times in query history.
+# Used 60 times in query history.
 - kind: BlogSite
   properties:
   - name: user
@@ -59,7 +59,7 @@ indexes:
   - name: created
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used 10 times in query history.
 - kind: Keyword
   properties:
   - name: user

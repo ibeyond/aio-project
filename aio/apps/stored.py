@@ -45,6 +45,9 @@ class TwitterUser(AIOBase):
     notifications = db.BooleanProperty()
     following = db.BooleanProperty()
 
+class TwitterFriend(TwitterUser):
+    friend_id = db.StringProperty()
+
 class TwitterStatus(AIOBase):
     status_id = db.IntegerProperty()
     text = db.StringProperty(multiline=True)
@@ -72,9 +75,9 @@ class TwitterBlog(AIOBase):
     category = db.StringProperty()
 
 class Keyword(AIOBase):
-    name = db.StringProperty()
-    value = db.StringProperty()
-    category = db.StringProperty()
+    keyword_name = db.StringProperty()
+    keyword_value = db.StringProperty()
+    keyword_category = db.StringProperty()
     
 class BlogPost(AIOBase):
     blog_id = db.StringProperty()

@@ -48,13 +48,14 @@ class Twitter(apps.AIOProcessor):
         twitter_blog.put()
         self.redirect('/twitter/setting') 
          
-    def post_to(self):
-        content = self.request.get('content')
-        if content == '':
-            self.redirect('/twitter')
-            return
-        token = OAuthService.all().filter('user =', self.user).filter('service_name =', service_name).get()
-        if token:
-            apps.get_data_from_signed_url('https://twitter.com/statuses/update.json', token, __meth='POST', **{'status':content})
+    def post_to_twitter(self):
+        error = self.check_params()
+        if not error:
+            token = OAuthService.all().filter('user =', self.user).filter('service_name =', service_name).get()
+            if token:
+                self.log.info(apps.get_data_from_signed_url('https://twitter.com/statuses/update.json', token, __meth='POST', **{'status':self.form['content'].encode(apps.encoding)}))
+                pass
+        else:
+            self.log.info(error)
         self.redirect('/twitter')
         pass

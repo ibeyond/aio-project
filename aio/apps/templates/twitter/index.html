@@ -1,5 +1,10 @@
 {% extends '../layout.html' %}
 {% block contents %}
+<form action="/twitter/post_to_twitter" method="POST">
+<textarea id="content" name="content" rows="3" cols="40"></textarea>
+<br />
+<input type="submit" value="提交" />
+</form>
 <div id="twitter">
 	<h2>Twitter</h2>
 	<div id="twitter_user_panel">

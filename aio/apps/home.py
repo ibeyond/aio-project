@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from google.appengine.api import users
+from google.appengine.api import users, memcache
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
@@ -9,6 +9,7 @@ import apps
 from apps.stored import TwitterStatus, BlogPost
 class Home(webapp.RequestHandler):
     def get(self):
+        memcache.flush_all()
         page_data = {}
         user = users.get_current_user()
         if user:

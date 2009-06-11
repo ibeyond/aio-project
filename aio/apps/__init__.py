@@ -83,7 +83,7 @@ class AIOProcessor(webapp.RequestHandler):
                 if self.result['body'] is not None: self.write(self.result['body'])
         except Exception, e:
             logging.exception(e)
-            self.redirect(self.__class__.__name__.lower())
+            self.redirect('/%s' % (self.__class__.__name__.lower()))
         finally:
             pass
     
@@ -154,6 +154,7 @@ def get_data_from_signed_url(__url, __service, __meth='GET', **extra_params):
         if __service.service_name == 'twitter':
             return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=methods[__meth], headers=headers).content
         if __service.realm == 'https://www.blogger.com/feeds/':
+            headers = get_auth_headers(__url, __service, __meth)
             headers['Content-Type'] = 'application/atom+xml'
             headers['GData-Version'] = '2'
             result = urlfetch.fetch(url=__url,payload=extra_params['body'],method=methods[__meth], headers=headers)
@@ -187,10 +188,11 @@ def get_signed_url(__url, __service, __meth='GET', **extra_params):
         ).digest().encode('base64')[:-1]
     return '%s?%s' % (__url, urlencode(kwargs))
 
-def get_auth_headers(__url,__service, __meth='GET', **params):
-    message_info = get_signed_url(__url, __service, __meth)
-    auth = ', '.join(message_info.split('?')[1].split('&'))
-    return {'Authorization':'OAuth realm="%s",%s' % (__service.realm, auth)}
+def get_auth_headers(__url,__service, __meth='GET', **extra_params):
+    message_info = get_signed_url(__url, __service, __meth,  **extra_params)
+    header_name = ['oauth_version', 'oauth_token', 'oauth_nonce', 'oauth_timestamp', 'oauth_signature', 'oauth_consumer_key', 'oauth_signature_method',]
+    auth = ', '.join(['%s="%s"' % (param.split('=')[0], param.split('=')[1]) for param in message_info.split('?')[1].split('&') if param.split('=')[0] in header_name])
+    return {'Authorization':'OAuth realm="%s", %s' % (__service.realm, auth)}
 
 
 def encode(text):
