@@ -128,7 +128,7 @@ class Cron(webapp.RequestHandler):
                             'templates/%s/%s.html' % ('twitter', 'twitter_list'))
             contents = template.render(path, {'twitter_status':apps.get_twitter_daily(twitter_blog.user, curr_date)})
             entry = apps.make_blog_post('Twitter Daily(%s)' % (show_date.strftime('%Y-%m-%d')), contents, [twitter_blog.category])
-            logging.info(apps.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry}))
+            apps.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry})
 
 def add_post(entry, user, blog_id):
     post = BlogPost.all().filter('post_id =', entry.id).get()

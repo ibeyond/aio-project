@@ -10,6 +10,15 @@
 $(document).ready(function(){
 	$('#content').wysiwyg();
 });
+function setCategory(obj){
+	if ($('#term').val() == ''){
+		$('#term').val(obj);
+	}else{
+		if ($('#term').val().indexOf(obj) == -1){
+			$('#term').val($('#term').val() + ',' + obj);
+		}
+	}
+}
 -->
 </script>
 {% endblock %}
@@ -20,6 +29,14 @@ $(document).ready(function(){
 <br />
 <textarea name="content" id="content" rows="20" cols="80">{{ post_content }}</textarea>
 <br />
+{% if category %}
+| 
+{% for c in category %}
+<a href="#" onclick="setCategory('{{ c }}')">{{ c }}</a>
+|
+{% endfor %}
+ <br />
+{% endif %}
 <input type="text" value="{{ post_tags }}" id="term" name="term" />
 {% if blog_id %}
 <input type="hidden" value="{{ blog_id }}" id="blog_id" name="blog_id"/>
