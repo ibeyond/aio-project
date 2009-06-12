@@ -2,12 +2,12 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from apps.home import Home
 
-from apps.twitter import Twitter
-from apps.cron import Cron
-from apps.admin import Admin
-from apps.clean import Clean
-from apps.blogger import Blogger
-from apps.keyword import Keyword
+from apps.views.twitter import Twitter
+from apps.views.cron import Cron
+from apps.views.admin import Admin
+from apps.views.clean import Clean
+from apps.views.blogger import Blogger
+from apps.views.keyword import Keyword
 
 webapp.template.register_template_library('apps.tags') 
 
