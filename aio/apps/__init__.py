@@ -3,19 +3,21 @@
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.ext import db
-from random import getrandbits
-from time import time
-from hmac import new as hmac
-from urllib import urlencode, quote as urlquote
-from hashlib import sha1
+
 from datetime import datetime,timedelta
 from apps.db import AIOBase, Counter
-from apps.lib import simplejson, gdata, atom
+import simplejson, gdata, atom
 import os, logging, re
 
 encoding = 'utf-8'
 
 timedelta_seconds = 28800
+
+twitter_service = 'twitter'
+twitter_user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
+twitter_status_counter = 'twitter_status'
+twitter_import_counter = 'twitter_import'
+twitter_max_count = 10
 
     
 def make_blog_post(title, content, term):

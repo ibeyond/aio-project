@@ -1,22 +1,16 @@
 ## -*- coding: utf-8 -*-
 
-from apps.db import *
+
 from google.appengine.ext import webapp, db
 from google.appengine.api import memcache
+from google.appengine.ext.webapp import template
 import simplejson
 from datetime import datetime, timedelta
-
-import apps, logging, gdata, atom, os
-
-from google.appengine.ext.webapp import template
-
-from apps.blogger import service_name as blogger_service
-from feedparser import feedparser
-
-twitter_user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
-twitter_status_counter = 'twitter_status'
-twitter_import_counter = 'twitter_import'
-twitter_max_count = 200
+import logging, gdata, atom, os
+from apps.db import Account, OAuthService, Counter
+from apps.views import twitter
+from apps.lib import oauth, user
+import apps
 
 class Cron(webapp.RequestHandler):
     
@@ -28,12 +22,15 @@ class Cron(webapp.RequestHandler):
         self.redirect('/')
         
     def twitter_update(self):
-        for local_user in AIOBase.all().order('-created'):
-            service = OAuthService.all().filter('user =', local_user.user).filter('service_name =', 'twitter').get()
+        """
+        更新全部用户Twitter
+        """
+        for local_user in Account.all().order('-created'):
+            service = OAuthService.all().filter('user =', local_user.user).filter('service_name =', twitter.twitter_service).get()
             if service is not None:
                 try:
-                    status = simplejson.loads(apps.get_data_from_signed_url(twitter_user_timeline_url, service, **{'count':twitter_max_count}), apps.encoding)
-                    add_status(status, service.user)
+                    status = simplejson.loads(oauth.get_data_from_signed_url(twitter.twitter_user_timeline_url, service, **{'count':twitter.twitter_max_count}), apps.encoding)
+                    twitter.add_status(status, service.user)
                 except Exception, e:
                     logging.exception(e)
                     pass
@@ -46,18 +43,17 @@ class Cron(webapp.RequestHandler):
         counter_stored_list = []
         if counter_list is not None:
             for counter_name in counter_list:
-                 counter_value = memcache.get(counter_list)
-                 logging.info('%s = %s' % (counter_name, counter_value))
-                 counter_name_list = counter_name.split('^')
-                 counter = Counter.all().filter('user.email =', counter_name_list[-1]).filter('name =', counter_name_list[1]).get()
-                 if counter is None:
-                     counter = Counter(user=apps.get_user(counter_name_list[-1]), name=counter_name_list[1])
-                 counter.value = counter_value
-                 counter_stored_list.append(counter)
-            db.put(counter_sotred_list)
+                counter_value = memcache.get(counter_name)
+                counter_name_list = counter_name.split('^')
+                counter = Counter.all().filter('user =', user.get_user(counter_name_list[-1])).filter('name =', counter_name_list[1]).get()
+                if counter is None:
+                    counter = Counter(user=user.get_user(counter_name_list[-1]), name=counter_name_list[1])
+                counter.value = counter_value
+                counter_stored_list.append(counter)
+            db.put(counter_stored_list)
                  
     def twitter_import(self):
-        for local_user in AIOBase.all().order('-created'):
+        for local_user in Account.all().order('-created'):
             service = OAuthService.all().filter('user =', local_user.user).filter('service_name =', 'twitter').get()
             if service is not None:
                 twitter_user = memcache.get('twitter_%s' % service.user_id)
@@ -156,37 +152,3 @@ def add_post(entry, user, blog_id):
     post.updated_at = apps.datetime_format(entry.updated)
     post.put()
     
-def add_status(status, user):
-    memcache.flush_all()
-    update_twitter_user_flag = True
-    for s in status:
-        user_info = s['user']
-        user_info = dict((k, v) for k, v in user_info.items())
-        user_info['user_id'] = user_info['id']
-        del user_info['id']
-        twitter_user = memcache.get('twitter_%s' % user_info['user_id'])
-        if update_twitter_user_flag and ((twitter_user is None) or twitter_user.statuses_count != user_info['statuses_count']):
-            if twitter_user is None:
-                twitter_user = TwitterUser.all().filter('user_id =',user_info['user_id']).get()
-                if twitter_user is None:
-                    twitter_user = TwitterUser(user=user)
-            for k, v in user_info.items():
-                twitter_user.__setattr__(k , v)
-            twitter_user.put()
-            memcache.add('twitter_%s' % user_info['user_id'], twitter_user)
-            update_twitter_user_flag = False
-        s = dict((str(k), v) for k, v in s.items())
-        s['status_id'] = s['id']
-        s['twitter_user_id'] = s['user']['id']
-        del s['id']
-        del s['user']
-        s['published_at'] = datetime.strptime(s['created_at'], '%a %b %d %H:%M:%S +0000 %Y')
-        twitter_status_user_id = 'twitter_status_%s' % s['status_id'] 
-        if memcache.get(twitter_status_user_id) is None:
-            twitter_entry = TwitterStatus.all().filter('status_id =', s['status_id']).get()
-            if twitter_entry is None:
-                twitter_entry = TwitterStatus(user=twitter_user.user, twitter_user=twitter_user, **s)
-                twitter_entry.put()
-                memcache.add(twitter_status_user_id, twitter_entry)
-                apps.add_memcache_list(twitter_status_user_id)
-                apps.counter_incr(twitter_status_counter, user)

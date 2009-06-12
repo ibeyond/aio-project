@@ -6,10 +6,25 @@ Created on Jun 12, 2009
 @author: SongQingJie
 '''
 
+from random import getrandbits
+from time import time
+from hmac import new as hmac
+from urllib import urlencode, quote as urlquote
+from hashlib import sha1
+
+
+from google.appengine.api import urlfetch
+
 def get_request_token_info(__service, __meth='GET', **extra_params):
+    """
+    取得request token
+    """
     return get_data_from_signed_url(__service.request_token_url,__service, __meth, **extra_params)
 
 def get_data_from_signed_url(__url, __service, __meth='GET', **extra_params):
+    """
+    取得数据
+    """
     if __meth == 'GET':
         result = urlfetch.fetch(get_signed_url(__url, __service, __meth, **extra_params))
         return result.content
@@ -26,6 +41,9 @@ def get_data_from_signed_url(__url, __service, __meth='GET', **extra_params):
             return result.content
     
 def get_signed_url(__url, __service, __meth='GET', **extra_params):
+    """
+    进行签名
+    """
     kwargs = {
         'oauth_consumer_key': __service.consumer_key,
         'oauth_signature_method': 'HMAC-SHA1',
@@ -54,11 +72,13 @@ def get_signed_url(__url, __service, __meth='GET', **extra_params):
     return '%s?%s' % (__url, urlencode(kwargs))
 
 def get_auth_headers(__url,__service, __meth='GET', **extra_params):
+    """
+    取得OAuth Headers
+    """
     message_info = get_signed_url(__url, __service, __meth,  **extra_params)
     header_name = ['oauth_version', 'oauth_token', 'oauth_nonce', 'oauth_timestamp', 'oauth_signature', 'oauth_consumer_key', 'oauth_signature_method',]
     auth = ', '.join(['%s="%s"' % (param.split('=')[0], param.split('=')[1]) for param in message_info.split('?')[1].split('&') if param.split('=')[0] in header_name])
     return {'Authorization':'OAuth realm="%s", %s' % (__service.realm, auth)}
-
 
 def encode(text):
     return urlquote(str(text), '')

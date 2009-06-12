@@ -13,6 +13,7 @@ from google.appengine.ext.webapp.util import login_required
 from google.appengine.ext.webapp import template
 from google.appengine.api import users
 
+
 from appengine_utilities import sessions
 
 import apps
@@ -36,8 +37,6 @@ class AIOProcessor(webapp.RequestHandler):
         if action.startswith('_'):
             self.error_page('非法访问')
             return
-        #注册新用户
-        apps.reg_account(self.user)
         #初始化页面数据
         self.page_data = {}
         self.page_data['user'] = self.user
@@ -48,7 +47,8 @@ class AIOProcessor(webapp.RequestHandler):
             getattr(self,action)()
             self.page_data['session'] = self.session
             path = os.path.join(os.path.dirname(__file__), 
-                        'templates/%s/%s.html' % (self.__class__.__name__.lower(), (self.template_file is None) and action or self.template_file))
+                        '../views/templates/%s/%s.html' % (self.__class__.__name__.lower(), (self.template_file is None) and action or self.template_file))
+            self.log.info(path)
             self.write(template.render(path, self.page_data))
         except Exception, e:
             self.log.exception(e)
@@ -67,10 +67,10 @@ class AIOProcessor(webapp.RequestHandler):
         try:
             getattr(self, action)()
             if self.result['type'] == 'json':
-                self.response.headers['Content-Type'] ='application/json;charset=%s' % encoding
+                self.response.headers['Content-Type'] ='application/json;charset=%s' % apps.encoding
                 if self.result['body'] is not None: self.write(self.dumps(self.result['body']))
             else:
-                self.response.headers['Content-Type'] ='application/%s; charset=%s' % (self.result['type'] ,encoding)
+                self.response.headers['Content-Type'] ='application/%s; charset=%s' % (self.result['type'], apps.encoding)
                 if self.result['body'] is not None: self.write(self.result['body'])
         except Exception, e:
             self.log.exception(e)
