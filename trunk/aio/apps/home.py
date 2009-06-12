@@ -5,15 +5,16 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 import os, logging
-import apps
-from apps.stored import TwitterStatus, BlogPost
+from apps.lib.user import reg_account
+
+from apps.db import TwitterStatus, BlogPost
 class Home(webapp.RequestHandler):
     def get(self):
         memcache.flush_all()
         page_data = {}
         user = users.get_current_user()
         if user:
-            apps.reg_account(user)
+            reg_account(user)
             page_data['user'] = user
         write = self.response.out.write
         path = os.path.join(os.path.dirname(__file__), 

@@ -27,7 +27,7 @@ class OAuthService(AIOBase):
 
 
 class TwitterUser(AIOBase):
-    user_id = db.StringProperty()
+    user_id = db.IntegerProperty()
     name = db.StringProperty()
     screen_name = db.StringProperty()
     location = db.StringProperty()
@@ -44,6 +44,13 @@ class TwitterUser(AIOBase):
     statuses_count = db.IntegerProperty()
     notifications = db.BooleanProperty()
     following = db.BooleanProperty()
+    profile_sidebar_fill_color = db.StringProperty()
+    profile_text_color = db.StringProperty()
+    profile_background_color = db.StringProperty()
+    profile_link_color = db.StringProperty()
+    profile_background_image_url = db.StringProperty()
+    profile_background_tile = db.BooleanProperty()
+    profile_sidebar_border_color = db.StringProperty()
 
 class TwitterFriend(TwitterUser):
     friend_id = db.StringProperty()

@@ -1,7 +1,6 @@
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from apps.home import Home
-from apps import Error
 
 from apps.twitter import Twitter
 from apps.cron import Cron
@@ -23,7 +22,6 @@ urls = [
         (r'/admin', Admin),
         (r'/admin/(.*)', Admin),
         (r'/cron/(.*)', Cron),
-        (r'/error', Error),
         (r'/clean', Clean),
         ]
 
