@@ -1,7 +1,6 @@
 ## -*- coding: utf-8 -*-
 
-from apps.db import AIOBase, TwitterUser, OAuthService, BlogPost
-from apps.db import TwitterStatus, Counter, TwitterBlog, BlogSite
+from apps.db import *
 from google.appengine.ext import webapp, db
 from google.appengine.api import memcache
 import simplejson
