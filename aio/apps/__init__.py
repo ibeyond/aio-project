@@ -10,7 +10,8 @@ from urllib import urlencode, quote as urlquote
 from hashlib import sha1
 from datetime import datetime,timedelta
 from apps.db import AIOBase, Counter
-import simplejson, os, logging, re, gdata, atom
+from apps.lib import simplejson, gdata, atom
+import os, logging, re
 
 encoding = 'utf-8'
 
