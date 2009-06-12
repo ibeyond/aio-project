@@ -73,7 +73,7 @@ indexes:
   - name: created
     direction: desc
 
-# Used 7 times in query history.
+# Used 3 times in query history.
 - kind: OAuthService
   properties:
   - name: user
@@ -102,7 +102,7 @@ indexes:
   - name: published_at
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: TwitterStatus
   properties:
   - name: twitter_user

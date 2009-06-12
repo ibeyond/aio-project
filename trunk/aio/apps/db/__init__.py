@@ -2,10 +2,14 @@
 
 from google.appengine.ext import db
 
+
 class AIOBase(db.Model):
     user = db.UserProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
     updated = db.DateTimeProperty(auto_now=True)
+
+class Account(AIOBase):
+    email = db.StringProperty()
 
 class Counter(AIOBase):
     name = db.StringProperty()

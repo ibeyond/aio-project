@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from apps.lib.aio import AIOProcessor
+from apps.lib.oauth import *
 from apps.db import OAuthService
 from google.appengine.ext import db
-import urllib, apps
+import urllib
 
 services = {
             'blogger':{
@@ -31,13 +32,13 @@ class Admin(AIOProcessor):
         self.page_data['oauth_service'] = OAuthService.all().filter('user =', self.user).order('-updated')
         self.page_data['oauth_service_list'] = services
     
-    def del_service(self):
+    def _del_service(self):
         key = self.request.get('key')
         if key != '':
             db.delete(db.get(key))
         self.redirect('/admin')
         
-    def get_token(self):
+    def _get_token(self):
         key = self.request.get('key')
         if key == '':
             self.redirect('/admin')
@@ -46,17 +47,17 @@ class Admin(AIOProcessor):
         kwargs = {}
         kwargs['scope'] = service.realm
         kwargs['oauth_callback'] = '%s://%s/admin/token?service=%s' % (self.request.scheme, self.request.host, service.service_name)
-        token_info = urllib.unquote(apps.get_request_token_info(service, **kwargs))
+        token_info = urllib.unquote(get_request_token_info(service, **kwargs))
         service.req_oauth_token = dict(token.split('=') for token in token_info.split('&'))['oauth_token']
         service.req_oauth_token_secret = dict(token.split('=') for token in token_info.split('&'))['oauth_token_secret']
         service.put()
-        self.redirect(apps.get_signed_url(service.user_auth_url, service))
+        self.redirect(get_signed_url(service.user_auth_url, service))
         return
     
     def token(self):
         service_name = self.request.get('service')
         service = OAuthService.all().filter('user =', self.user).filter('service_name =', service_name).get()
-        token_info = apps.get_data_from_signed_url(service.access_token_url, service,**{'oauth_verifier':self.request.get('oauth_verifier')})
+        token_info = get_data_from_signed_url(service.access_token_url, service,**{'oauth_verifier':self.request.get('oauth_verifier')})
         token_info = urllib.unquote(token_info)
         service.oauth_token = dict(token.split('=') for token in token_info.split('&'))['oauth_token']
         service.oauth_token_secret = dict(token.split('=') for token in token_info.split('&'))['oauth_token_secret']

@@ -50,10 +50,18 @@
 			<td>{{ site.user_id }}</td>
 		</tr>
 		<tr>
-			<td colspan="2">
-			<a href="/admin/del_service?key={{ site.key }}">删除服务</a>
-			{% ifequal oauth_token_secret None %}
-			<a href="/admin/get_token?key={{ site.key }}">取得Token</a>
+			<td>
+			<form action="/admin/_del_service" method="POST">
+			<input type="hidden" value="{{ site.key }}" name="key" id="key" />
+			<input type="submit" value="删除服务"/>
+			</form>
+			</td>
+			<td>
+			{% ifequal site.oauth_token_secret None %}
+			<form action="/admin/_get_token" method="POST">
+			<input type="hidden" value="{{ site.key }}" name="key" id="key" />
+			<input type="submit" value="取得Token" />
+			</form>
 			{% endifequal %}
 			</td>
 		</tr>
