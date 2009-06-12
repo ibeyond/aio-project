@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+from apps.lib.aio import AIOProcessor
 import apps
-from apps.stored import BlogSite, OAuthService, TwitterBlog, BlogPost
+from apps.db import BlogSite, OAuthService, TwitterBlog, BlogPost
 from google.appengine.ext import db
 from gdata import service
 import atom, gdata
 
 service_name = 'blogger'
 
-class Blogger(apps.AIOProcessor):
+class Blogger(AIOProcessor):
     
     def index(self):
         blogs = BlogSite.all().filter('user =', self.user).order('-updated')

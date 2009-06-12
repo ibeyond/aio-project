@@ -1,16 +1,35 @@
 # -*- coding: utf-8 -*-
-import apps
-from apps import *
-from apps.stored import OAuthService
+from apps.lib.aio import AIOProcessor
+from apps.db import OAuthService
 from google.appengine.ext import db
-import urllib
+import urllib, apps
 
-class Admin(apps.AIOProcessor):
+services = {
+            'blogger':{
+                       'service_name' : 'blogger',
+                       'realm' : 'https://www.blogger.com/feeds/',
+                       'consumer_key' : 'aio.appspot.com',
+                       'consumer_secret' : 'sLhPEOYV9DBcMeSTwmdZqbAC',
+                       'request_token_url' : 'https://www.google.com/accounts/OAuthGetRequestToken',
+                       'access_token_url' : 'https://www.google.com/accounts/OAuthGetAccessToken',
+                       'user_auth_url' : 'https://www.google.com/accounts/OAuthAuthorizeToken',
+                       },
+            'twitter':{
+                       'service_name' : 'twitter',
+                       'realm' : 'https://twitter.com/',
+                       'consumer_key' : 'VdAyDKInmaNXpbIJOTmLw',
+                       'consumer_secret' : 'JqZsh6FGPPjYVdgypRYQbd0Ljl33kZ79EPJQ66pVKQ',
+                       'request_token_url' : 'https://twitter.com/oauth/request_token',
+                       'access_token_url' : 'https://twitter.com/oauth/access_token',
+                       'user_auth_url' : 'https://twitter.com/oauth/authorize',
+                       },
+            }
+
+class Admin(AIOProcessor):
     
     def index(self):
-        service = OAuthService.all().filter('user =', self.user).filter('service_name =', 'blogger').get()
-        self.page_data['site_list'] = apps.site_list
         self.page_data['oauth_service'] = OAuthService.all().filter('user =', self.user).order('-updated')
+        self.page_data['oauth_service_list'] = services
     
     def del_service(self):
         key = self.request.get('key')
@@ -25,14 +44,9 @@ class Admin(apps.AIOProcessor):
             return
         service = db.get(key)
         kwargs = {}
-        if service.service_name == 'blogger':
-            kwargs['scope'] = 'https://www.blogger.com/feeds'
-            kwargs['oauth_callback'] = 'https://aio.appspot.com/admin/token?service=blogger'
-            if self.request.host == 'localhost':
-                kwargs['oauth_callback'] = 'http://localhost/admin/token?service=blogger'
-        token_info = apps.get_request_token_info(service, **kwargs)
-        
-        token_info = urllib.unquote(token_info)
+        kwargs['scope'] = service.realm
+        kwargs['oauth_callback'] = '%s://%s/admin/token?service=%s' % (self.request.scheme, self.request.host, service.service_name)
+        token_info = urllib.unquote(apps.get_request_token_info(service, **kwargs))
         service.req_oauth_token = dict(token.split('=') for token in token_info.split('&'))['oauth_token']
         service.req_oauth_token_secret = dict(token.split('=') for token in token_info.split('&'))['oauth_token_secret']
         service.put()
@@ -53,18 +67,15 @@ class Admin(apps.AIOProcessor):
         service.put()
         self.redirect('/admin')
         
-    def add_service(self):
-        error = self.check_params()
-        result = {}
-        result['message'] = 'success'
-        if error:
-            result['message'] = error
-        else:
+    def _add_service(self):
+        if self.request.method == 'POST':
             service  = OAuthService.all().filter('user =', self.user).filter('service_name =', self.form['service_name']).get()
             if service:
-                service.consumer_key = self.form['consumer_key']
-                service.consumer_secret = self.form['consumer_secret']
+                service.consumer_key = services[self.form['service_name']]['consumer_key']
+                service.consumer_secret = services[self.form['service_name']]['consumer_secret']
             else:
-                service = OAuthService(user=self.user,**self.form)
+                service = OAuthService(user=self.user, **services[self.form['service_name']])
             service.put()
-            self.redirect('/admin')
+        else:
+            pass
+        self.redirect('/admin')

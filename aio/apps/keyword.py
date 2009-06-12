@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import apps
+from apps.lib.aio import AIOProcessor
+from apps.db import Keyword as db_Keyword
 
-from apps.stored import Keyword as db_Keyword
-
-class Keyword(apps.AIOProcessor):
+class Keyword(AIOProcessor):
     def index(self):
         self.page_data['keywords'] = db_Keyword.all().filter('user =', self.user).order('-updated')
         

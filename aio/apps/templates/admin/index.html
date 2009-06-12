@@ -1,17 +1,10 @@
 {% extends '../layout.html' %}
 {% block title %} Admin {% endblock %}
 {% block javascript %}
+<script lanugage="javascript">
+</script>
 {% endblock %}
 {% block contents %}
 <h1>Admin</h1>
-<h2>Google Reader Shared</h2>
-current url is:
-{{ google_reader_shared_url }}
-<br />
-add Greader user id:
-<form action="/admin/add_greader_shared_site" method="POST">
-<input type="text" name="user_id" id="user_id"/>
-<input type="submit" />
-</form>
 {% include 'oauth.html' %}
 {% endblock %}

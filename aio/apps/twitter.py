@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from apps.lib.aio import AIOProcessor
 from google.appengine.api import memcache
-from apps.stored import OAuthService, TwitterUser, TwitterStatus, BlogSite, TwitterBlog
+from apps.db import OAuthService, TwitterUser, TwitterStatus, BlogSite, TwitterBlog
 from apps.cron import Cron
 import simplejson
 import apps
@@ -9,7 +10,7 @@ from google.appengine.ext import db
 
 service_name = 'twitter'
 
-class Twitter(apps.AIOProcessor):
+class Twitter(AIOProcessor):
     
     def index(self):
         memcache.flush_all()
@@ -59,3 +60,22 @@ class Twitter(apps.AIOProcessor):
             self.log.info(error)
         self.redirect('/twitter')
         pass
+
+
+def get_twitter_daily(user, date):
+    data = memcache.get('twitter_%s_%s' %(user.email() ,str(date)))
+    if data is None:
+        data = TwitterStatus.all().filter('twitter_user =', get_twitter_user(user)).filter('published_at <', (date + timedelta(days=1))).filter('published_at >=', date).order('-published_at')
+        memcache.add('twitter_%s_%s' %(user.email() ,str(date)), data)
+    return data
+
+def get_twitter_user(user):
+    twitter_user = memcache.get('twitter_user_%s' % (user.email()))
+    if twitter_user is None:
+        twitter_user = TwitterUser.all().filter('user =', user).get()
+        if twitter_user is None:
+            import apps.cron
+            apps.cron.Cron().twitter_update()
+            twitter_user = TwitterUser.all().filter('user =', user).get()
+            memcache.add('twitter_user+%s' % (user.email), twitter_user)
+    return twitter_user

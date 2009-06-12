@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
-import re
+
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
+from apps.db import Keyword
+import logging, re, apps
 
 register = webapp.template.create_template_register()
-
-import logging
-import apps
-
-
 @register.filter
 def datetz(date, arg):
     from apps.twitter import Twitter
@@ -22,7 +19,6 @@ def replace_link (str):
     str = p.sub('(<a href="\g<1>" title="\g<1>">url</a>)',str)
     p = re.compile(r'@(?P<name>\w+\b)')
     str = p.sub('@<a href="https://twitter.com/\g<1>">\g<1></a>',str)
-    from apps.stored import Keyword
     for keyword in Keyword.all().filter('keyword_category =','url'):
         p = re.compile(r'(?P<name>\b%s\b(?![.]))' % keyword.keyword_name, re.IGNORECASE)
         str = p.sub('<a href="%s">\g<1></a>' % keyword.keyword_value,str)
