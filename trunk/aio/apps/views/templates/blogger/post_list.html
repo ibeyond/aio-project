@@ -1,0 +1,27 @@
+{% extends '../layout.html' %}
+{% block title %} Blogger {% endblock %}
+{% block contents %}
+{{ blog.title }}
+<br />
+<table border="1">
+<tbody>
+{% for post in posts %}
+<tr>
+<td>
+<a href="{{ post.link }}">{{ post.title }}</a>
+</td>
+<td>
+<a href="/blogger/edit?post_id={{ post.post_id }}">编辑</a>
+</td>
+<td> 
+<form action="/blogger/_delete" method="POST" onsubmit="javascript:return confirm('确定删除吗');">
+<input type="hidden" name="post_id" value="{{ post.post_id }}">
+<input type="hidden" name="blog_id" value="{{ blog.blog_id }}">
+<input type="submit" value="删除" />
+</form>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

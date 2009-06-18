@@ -2,4 +2,11 @@
 {% block contents %}
 <h2>Twitter</h2>
 {% include '../twitter/twitter_list.html' %}
+<hr />
+{% if blog_post %}
+{% for post in blog_post %}
+<a href="{{ post.link }}" target="_blank">{{ post.title }}</a>
+<br/>
+{% endfor %}
+{% endif %}
 {% endblock %}

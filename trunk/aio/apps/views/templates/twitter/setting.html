@@ -1,30 +1,44 @@
 {% extends '../layout.html' %}
 {% block contents %}
 <h2>Setting</h2>
+<a href="/twitter/import_status" target="_blank">import status</a>
+<br />
 {% if blog_site %}
 {% if twitter_blog %}
 当前默认发布Blog为:{{ twitter_blog_title }} -- {{ twitter_blog.category }}
-<br />
+{% else %}
+当前没有设定默认发布
 {% endif %}
+<br />
 {% for blog in blog_site %}
 {{ blog.title }}
 <br />
-|
 {% for term in blog.category %}
 {% if twitter_blog %}
 	{% ifequal twitter_blog.blog_id blog.blog_id %}
 		{% ifequal twitter_blog.category term %}
 			{{ term }}
-		{% else %} 
-			<a href="/twitter/make_default_blog?blog_id={{ blog.blog_id }}&category={{ term }}">{{ term }}</a>
+		{% else %}
+<form action="/twitter/_make_default_blog" method="POST">
+<input type="hidden" name="blog_id" value="{{ blog.blog_id }}">
+<input type="hidden" name="category" value="{{ term }}">
+<input type="submit" value="{{ term }}">
+</form>
 		{% endifequal %}
 	{% else %}
-	<a href="/twitter/make_default_blog?blog_id={{ blog.blog_id }}&category={{ term }}">{{ term }}</a>
+<form action="/twitter/_make_default_blog" method="POST">
+<input type="hidden" name="blog_id" value="{{ blog.blog_id }}">
+<input type="hidden" name="category" value="{{ term }}">
+<input type="submit" value="{{ term }}">
+</form>
 	{% endifequal %}
 {% else %}
-	<a href="/twitter/make_default_blog?blog_id={{ blog.blog_id }}&category={{ term }}">{{ term }}</a>
+<form action="/twitter/_make_default_blog" method="POST">
+<input type="hidden" name="blog_id" value="{{ blog.blog_id }}">
+<input type="hidden" name="category" value="{{ term }}">
+<input type="submit" value="{{ term }}">
+</form>
 {% endif %}
- |
 {% endfor %}
 <br />
 {% endfor %}

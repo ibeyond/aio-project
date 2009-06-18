@@ -18,6 +18,17 @@ from appengine_utilities import sessions
 
 import apps
 
+class AIOException(Exception):
+    def __init__(self, msg):
+        Exception.__init__(self)
+        self.message = msg
+    
+    def __str__(self):
+        if isinstance(self.message, list):
+            return '<br />'.join(self.message)
+        else:
+            return self.message
+
 class AIOProcessor(webapp.RequestHandler):
     def __init(self):
         logging.info('### %s ###' % self.request.uri)
@@ -66,12 +77,12 @@ class AIOProcessor(webapp.RequestHandler):
         self.result['body'] = None  
         try:
             getattr(self, action)()
-            if self.result['type'] == 'json':
-                self.response.headers['Content-Type'] ='application/json;charset=%s' % apps.encoding
-                if self.result['body'] is not None: self.write(self.dumps(self.result['body']))
-            else:
-                self.response.headers['Content-Type'] ='application/%s; charset=%s' % (self.result['type'], apps.encoding)
-                if self.result['body'] is not None: self.write(self.result['body'])
+            self.response.headers['Content-Type'] ='application/%s; charset=%s' % (self.result['type'], apps.encoding)
+            if self.result['body'] is not None:
+                if self.result['type'] == 'json':
+                    self.write(self.dumps(self.result['body']))
+                else:
+                    self.write(self.result['body'])
         except Exception, e:
             self.log.exception(e)
             self.error_page(e)

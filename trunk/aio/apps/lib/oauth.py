@@ -15,6 +15,11 @@ from hashlib import sha1
 
 from google.appengine.api import urlfetch
 
+google_service = [
+                  'https://www.blogger.com/feeds/',
+                  'http://picasaweb.google.com/data/feed/api/user/',
+                  ]
+
 def get_request_token_info(__service, __meth='GET', **extra_params):
     """
     取得request token
@@ -33,7 +38,7 @@ def get_data_from_signed_url(__url, __service, __meth='GET', **extra_params):
         headers = get_auth_headers(__url, __service, __meth, **extra_params)
         if __service.service_name == 'twitter':
             return urlfetch.fetch(url=__url,payload=urlencode(extra_params),method=methods[__meth], headers=headers).content
-        if __service.realm == 'https://www.blogger.com/feeds/':
+        if __service.realm in google_service:
             headers = get_auth_headers(__url, __service, __meth)
             headers['Content-Type'] = 'application/atom+xml'
             headers['GData-Version'] = '2'

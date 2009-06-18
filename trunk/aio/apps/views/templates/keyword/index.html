@@ -8,20 +8,21 @@
 <table border="1">
 {% for keyword in keywords %}
 <tr>
-<td width="50">{{ keyword.keyword_name }}</td>
-<td width="20">{{ keyword.keyword_category }}</td>
-<td width="300">{{ keyword.keyword_value }}</td>
+<td width="50"><form action="/keyword/_del_keyword" method="POST"><input type="hidden" value="{{ keyword.key }}" name="key"><input type="submit" value="删除"/></form></td>
+<td width="*">{{ keyword.keyword_name }}</td>
+<td width="40" align="center">{{ keyword.keyword_category }}</td>
+<td width="*">{{ keyword.keyword_value }}</td>
 </tr>
 {% endfor %}
 </table>
 {% endif %}
-<form action="/keyword/add_keyword" method="POST">
-<input type="text" id="keyword_name" name="keyword_name" />
-<input type="text" id="keyword_value" name="keyword_value" />
+<form action="/keyword/_add_keyword" method="POST">
+<input type="text" size="20" id="keyword_name" name="keyword_name" />
+<input type="text" size="50" id="keyword_value" name="keyword_value" />
 <select id="keyword_category" name="keyword_category">
 <option value="url">URL</option>
 <option value="text">Text</option>
 </select>
-<input type="submit" value="add keyword" />
+<input type="submit" value="添加" />
 </form> 
 {% endblock %}

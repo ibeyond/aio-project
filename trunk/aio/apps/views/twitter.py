@@ -7,40 +7,48 @@ import simplejson
 import apps
 from datetime import datetime, timedelta
 from google.appengine.ext import db
-from apps.lib import *
+from apps import lib
+from apps.lib import aio, oauth
+from apps.lib.aio import AIOException 
+import logging
 
 twitter_service = 'twitter'
 twitter_user_timeline_url = 'https://twitter.com/statuses/user_timeline.json'
+twitter_user_update_url = 'https://twitter.com/statuses/update.json'
+twitter_user_friends_url = 'http://twitter.com/statuses/friends.json'
 twitter_status_counter = 'twitter_status'
 twitter_import_counter = 'twitter_import'
-twitter_max_count = 15
+twitter_max_count = 20
 
-def get_twitter_daily(user, date):
-    data = memcache.get('twitter_%s_%s' %(user.email() ,str(date)))
+def get_twitter_daily(user, date, sort='desc'):
+#    data = memcache.get('twitter_%s_%s' %(user.email() ,str(date)))
+    data = None
     if data is None:
-        data = TwitterStatus.all().filter('twitter_user =', get_twitter_user(user)).filter('published_at <', (date + timedelta(days=1))).filter('published_at >=', date).order('-published_at')
-        memcache.add('twitter_%s_%s' %(user.email() ,str(date)), data)
+        if sort == 'desc':
+            order_term = '-published_at'
+        else:
+            order_term = 'published_at'
+        data = TwitterStatus.all().filter('twitter_user_id =', get_twitter_user(user).user_id).filter('published_at <', (date + timedelta(days=1))).filter('published_at >=', date).order(order_term)
+        if data is not None:
+            memcache.add('twitter_%s_%s' %(user.email() ,str(date)), data)
     return data
 
 def get_twitter_user(user):
     twitter_user = memcache.get('twitter_user_%s' % (user.email()))
     if twitter_user is None:
         twitter_user = TwitterUser.all().filter('user =', user).get()
-        if twitter_user is None:
-            import apps.cron
-            apps.cron.Cron().twitter_update()
-            twitter_user = TwitterUser.all().filter('user =', user).get()
-            memcache.add('twitter_user+%s' % (user.email), twitter_user)
+        memcache.add('twitter_user+%s' % (user.email), twitter_user)
     return twitter_user
 
 def add_status(status, user):
-    memcache.flush_all()
     update_twitter_user_flag = True
     for s in status:
+        #取得用户信息
         user_info = s['user']
         user_info = dict((k, v) for k, v in user_info.items())
         user_info['user_id'] = user_info['id']
         del user_info['id']
+        #更新用户信息
         twitter_user = memcache.get(r'twitter_%s' % user_info['user_id'])
         if update_twitter_user_flag and ((twitter_user is None) or twitter_user.statuses_count != user_info['statuses_count']):
             if twitter_user is None:
@@ -48,10 +56,13 @@ def add_status(status, user):
                 if twitter_user is None:
                     twitter_user = TwitterUser(user=user)
             for k, v in user_info.items():
+                if k == 'following' and v == 0:
+                    v = False
                 twitter_user.__setattr__(k , v)
             twitter_user.put()
             memcache.add(r'twitter_%s' % user_info['user_id'], twitter_user)
             update_twitter_user_flag = False
+        #取得Status
         s = dict((str(k), v) for k, v in s.items())
         s['status_id'] = s['id']
         s['twitter_user_id'] = s['user']['id']
@@ -64,15 +75,12 @@ def add_status(status, user):
             if twitter_entry is None:
                 twitter_entry = TwitterStatus(user=twitter_user.user, twitter_user=twitter_user, **s)
                 twitter_entry.put()
-                memcache.add(twitter_status_user_id, twitter_entry)
-                add_memcache_list(twitter_status_user_id)
-                counter_incr(twitter_status_counter, user)
+                lib.counter_incr(twitter_status_counter, user)
 
 
 class Twitter(AIOProcessor):
     
     def index(self):
-        memcache.flush_all()
         twitter_user = get_twitter_user(self.user) 
         self.page_data['user_info'] = twitter_user
         today = datetime.today()
@@ -94,10 +102,21 @@ class Twitter(AIOProcessor):
             self.page_data['twitter_blog_title'] = BlogSite.all().filter('blog_id =', twitter_blog.blog_id).get().title   
         pass
     
-    def make_default_blog(self):
+    def import_status(self):
+        page_no = self.request.get('page_no')
+        if page_no == '':
+            page_no = 1
+        token = lib.get_token(twitter_service, self.user)
+        status = simplejson.loads(oauth.get_data_from_signed_url(twitter_user_timeline_url, token, **{'page':page_no, 'count':twitter_max_count}), apps.encoding)
+        if len(status) == 0:
+            self.page_data['page_no'] = -1
+            return
+        add_status(status, self.user)
+        self.page_data['page_no'] = int(page_no) + 1
+    
+    def _make_default_blog(self):
         blog_id = self.request.get('blog_id')
         category = self.request.get('category')
-        self.log.info(blog_id)
         if blog_id == '' or category == '':
             self.redirect('/twitter/setting')
             return
@@ -108,13 +127,13 @@ class Twitter(AIOProcessor):
         twitter_blog.put()
         self.redirect('/twitter/setting') 
          
-    def post_to_twitter(self):
+    def _post_to_twitter(self):
         error = self.check_params()
         if not error:
-            token = OAuthService.all().filter('user =', self.user).filter('service_name =', service_name).get()
+            token = lib.get_token(twitter_service, self.user)
             if token:
-                self.log.info(apps.get_data_from_signed_url('https://twitter.com/statuses/update.json', token, __meth='POST', **{'status':self.form['content'].encode(apps.encoding)}))
-                pass
+                status = simplejson.loads(oauth.get_data_from_signed_url(twitter_user_update_url, token, __meth='POST', **{'status':self.form['content'].encode(apps.encoding)}))
+                add_status([status], self.user)
         else:
-            self.log.info(error)
+            raise AIOException(error)
         self.redirect('/twitter')

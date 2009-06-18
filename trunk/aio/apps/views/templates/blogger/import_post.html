@@ -1,0 +1,8 @@
+{% ifequal start -1 %}
+导入成功。
+{% else %}
+<h2>正在导入第<b>{{ start }}</b>项</h2>
+<script language="javascript">
+document.location.href="/blogger/import_post?blog_id={{ blog_id }}&start={{ start }}";
+</script>
+{% endifequal %}

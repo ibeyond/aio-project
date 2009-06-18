@@ -9,7 +9,17 @@ Created on Jun 12, 2009
 from google.appengine.api import memcache
 from apps.db import *
 
-import logging
+import logging, re
+from datetime import datetime, timedelta
+
+
+def get_token(service_name, user):
+    token_key = 'token_%s_%s'% (service_name, user.email())
+    token = memcache.get(token_key)
+    if token is None:
+        token = OAuthService.all().filter('user =', user).filter('service_name =', service_name).get()
+        memcache.add(token_key, token)
+    return token
 
 def datetime_format(source):
     """格式化时间"""
@@ -46,6 +56,10 @@ def counter_incr(counter_name, user, delta=1):
     memcache.add(r'aio_counter_list', counter_list)
     return memcache.get(counter_name)
 
+def counter_decr(counter_name, user, delta=1):
+    counter_name = r'counter^%s^for^%s' % (counter_name, user.email())
+    memcache.decr(counter_name, delta)
+    return memcache.get(counter_name)
 
 def add_count(user, name, delta=1):
     """

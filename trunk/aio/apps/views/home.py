@@ -22,5 +22,5 @@ class Home(webapp.RequestHandler):
         page_data['login_url'] = users.create_login_url('/')
         page_data['logut_url'] = users.create_logout_url('/')
         page_data['twitter_status'] = TwitterStatus.all().order('-published_at').fetch(20)
-        page_data['blog_post'] = BlogPost.all().order('-updated_at').fetch(20)
+#        page_data['blog_post'] = BlogPost.all().order('-updated_at').fetch(20)
         write(template.render(path, page_data))

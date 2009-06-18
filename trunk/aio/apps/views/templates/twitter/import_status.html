@@ -1,0 +1,8 @@
+{% ifequal page_no -1 %}
+导入成功。
+{% else %}
+<h2>正在导入第<b>{{ page_no }}</b>页</h2>
+<script language="javascript">
+document.location.href="/twitter/import_status?page_no={{ page_no }}";
+</script>
+{% endifequal %}
