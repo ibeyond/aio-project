@@ -24,7 +24,7 @@ function setCategory(obj){
 {% endblock %}
 {% block contents %}
 <h1>{{ action_title }}</h1>
-<form action="/blogger/add" method="POST">
+<form action="/blogger/_add" method="POST">
 <input type="text" name="title" id="title" value="{{ post_title }}" size="60"/>
 <br />
 <textarea name="content" id="content" rows="20" cols="80">{{ post_content }}</textarea>

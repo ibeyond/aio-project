@@ -10,150 +10,64 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Unused in query history -- copied from input.
+# Used 19 times in query history.
 - kind: BlogPost
   properties:
   - name: blog_id
   - name: updated_at
     direction: desc
 
-# Unused in query history -- copied from input.
-- kind: BlogSite
-  properties:
-  - name: user
-  - name: created
-    direction: desc
-
-# Unused in query history -- copied from input.
+# Used 47 times in query history.
 - kind: BlogSite
   properties:
   - name: user
   - name: updated
     direction: desc
 
-# Unused in query history -- copied from input.
-- kind: BloggerSite
+# Used 6 times in query history.
+- kind: BlogSite
   properties:
   - name: user
-  - name: created
+  - name: updated_rss_at
     direction: desc
 
-# Unused in query history -- copied from input.
-- kind: FeedEntry
+# Used 20 times in query history.
+- kind: Keyword
   properties:
-  - name: base_feed
+  - name: keyword_category
   - name: updated
     direction: desc
 
-# Unused in query history -- copied from input.
-- kind: GReaderSharedPost
+# Used 8 times in query history.
+- kind: Keyword
   properties:
   - name: user
+  - name: updated
+    direction: desc
+
+# Used 7 times in query history.
+- kind: OAuthService
+  properties:
+  - name: user
+  - name: updated
+    direction: desc
+
+# Used 2 times in query history.
+- kind: TwitterStatus
+  properties:
+  - name: twitter_user
   - name: published_at
-    direction: desc
 
-# Unused in query history -- copied from input.
-- kind: Keyword
+# Used 44 times in query history.
+- kind: TwitterStatus
   properties:
-  - name: user
-  - name: created
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Keyword
-  properties:
-  - name: user
-  - name: updated
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: OAuthAccessToken
-  properties:
-  - name: user
-  - name: created
+  - name: twitter_user
+  - name: published_at
     direction: desc
 
 # Used 3 times in query history.
-- kind: OAuthService
-  properties:
-  - name: user
-  - name: updated
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: OAuthService
-  properties:
-  - name: user=
-  - name: updated
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: SharedPost
-  properties:
-  - name: name
-  - name: user
-  - name: published_at
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: SharedPost
-  properties:
-  - name: user
-  - name: published_at
-    direction: desc
-
-# Unused in query history -- copied from input.
 - kind: TwitterStatus
   properties:
-  - name: twitter_user
+  - name: twitter_user_id
   - name: published_at
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: TwitterStatus
-  properties:
-  - name: twitter_user
-  - name: status_id
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: TwitterStatus
-  properties:
-  - name: twitter_user
-  - name: twitter_user
-  - name: published_at
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: TwitterStatus
-  properties:
-  - name: user
-  - name: published_at
-
-# Unused in query history -- copied from input.
-- kind: TwitterStatus
-  properties:
-  - name: user
-  - name: published_at
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: TwitterStatus
-  properties:
-  - name: user
-  - name: status_id
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: UserSharedSite
-  properties:
-  - name: user
-  - name: created
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: django_admin_log
-  properties:
-  - name: user
-  - name: action_time
     direction: desc

@@ -56,9 +56,6 @@ class TwitterUser(AIOBase):
     profile_background_tile = db.BooleanProperty()
     profile_sidebar_border_color = db.StringProperty()
 
-class TwitterFriend(TwitterUser):
-    friend_id = db.StringProperty()
-
 class TwitterStatus(AIOBase):
     status_id = db.IntegerProperty()
     text = db.StringProperty(multiline=True)
@@ -72,6 +69,46 @@ class TwitterStatus(AIOBase):
     twitter_user_id = db.IntegerProperty()
     published_at = db.DateTimeProperty()
     created_at = db.StringProperty()
+
+class TwitterFriend(AIOBase):
+    user_id = db.IntegerProperty()
+    name = db.StringProperty()
+    screen_name = db.StringProperty()
+    location = db.StringProperty()
+    description = db.StringProperty()
+    profile_image_url = db.StringProperty()
+    url = db.StringProperty()
+    protected = db.BooleanProperty()
+    followers_count = db.IntegerProperty()
+    friends_count = db.IntegerProperty()
+    created_at = db.StringProperty()
+    favourites_count = db.IntegerProperty()
+    utc_offset = db.IntegerProperty()
+    time_zone = db.StringProperty()
+    statuses_count = db.IntegerProperty()
+    notifications = db.BooleanProperty()
+    following = db.BooleanProperty()
+    profile_sidebar_fill_color = db.StringProperty()
+    profile_text_color = db.StringProperty()
+    profile_background_color = db.StringProperty()
+    profile_link_color = db.StringProperty()
+    profile_background_image_url = db.StringProperty()
+    profile_background_tile = db.BooleanProperty()
+    profile_sidebar_border_color = db.StringProperty()
+
+class TwitterFriendStatus(AIOBase):
+    status_id = db.IntegerProperty()
+    text = db.StringProperty(multiline=True)
+    source = db.StringProperty()
+    truncated = db.BooleanProperty()
+    in_reply_to_status_id = db.IntegerProperty()
+    in_reply_to_user_id = db.IntegerProperty()
+    favorited = db.BooleanProperty()
+    in_reply_to_screen_name = db.StringProperty()
+    twitter_user = db.ReferenceProperty(TwitterFriend)
+    twitter_user_id = db.IntegerProperty()
+    published_at = db.DateTimeProperty()
+    created_at = db.StringProperty()
     
 class BlogSite(AIOBase):
     link = db.StringProperty()
@@ -80,6 +117,10 @@ class BlogSite(AIOBase):
     title = db.StringProperty()
     summary = db.StringProperty()
     total_results = db.IntegerProperty()
+    published = db.StringProperty()
+    published_at = db.DateTimeProperty()
+    updated_rss = db.StringProperty()
+    updated_rss_at = db.DateTimeProperty()
 
 class TwitterBlog(AIOBase):
     blog_id = db.StringProperty()
@@ -100,17 +141,3 @@ class BlogPost(AIOBase):
     published_at = db.DateTimeProperty()
     updated_at = db.DateTimeProperty()
     updated_b = db.StringProperty()
-    
-class SharedSite(AIOBase):
-    name = db.StringProperty()
-    value = db.TextProperty()
-    type = db.StringProperty()
-    
-class SharedPost(AIOBase):
-    post_id = db.StringProperty(multiline=True)
-    title = db.StringProperty()
-    url = db.StringProperty()
-    comment = db.StringProperty(multiline=True)
-    text = db.TextProperty()
-    published_at = db.DateTimeProperty()
-    published = db.StringProperty() 

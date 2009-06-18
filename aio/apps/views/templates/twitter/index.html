@@ -1,9 +1,17 @@
 {% extends '../layout.html' %}
 {% block contents %}
-<form action="/twitter/post_to_twitter" method="POST">
-<textarea id="content" name="content" rows="3" cols="40"></textarea>
-<br />
+<form action="/twitter/_post_to_twitter" method="POST">
+<table>
+<tr><td>
+<textarea id="content" name="content" rows="3" cols="80"></textarea>
+</td>
+</tr>
+<tr>
+<td>
 <input type="submit" value="提交" />
+</td>
+</tr>
+</table>
 </form>
 <div id="twitter">
 	<h2>Twitter</h2>

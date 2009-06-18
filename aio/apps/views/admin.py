@@ -15,6 +15,15 @@ services = {
                        'access_token_url' : 'https://www.google.com/accounts/OAuthGetAccessToken',
                        'user_auth_url' : 'https://www.google.com/accounts/OAuthAuthorizeToken',
                        },
+            'picasa':{
+                       'service_name' : 'picasa',
+                       'realm' : 'http://picasaweb.google.com/data/feed/api/user/',
+                       'consumer_key' : 'aio.appspot.com',
+                       'consumer_secret' : 'sLhPEOYV9DBcMeSTwmdZqbAC',
+                       'request_token_url' : 'https://www.google.com/accounts/OAuthGetRequestToken',
+                       'access_token_url' : 'https://www.google.com/accounts/OAuthGetAccessToken',
+                       'user_auth_url' : 'https://www.google.com/accounts/OAuthAuthorizeToken',
+                       },
             'twitter':{
                        'service_name' : 'twitter',
                        'realm' : 'https://twitter.com/',

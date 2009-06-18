@@ -1,23 +1,19 @@
 {% extends '../layout.html' %}
 {% block title %} Blogger {% endblock %}
-{% block javascript %}
-{% endblock %}
 {% block contents %}
 <h1>Blogger</h1>
+
 {% if blogs %}
+	<ul>
 	{% for blog in blogs %}
-	<li><a href='/blogger/?blog_id={{ blog.blog_id }}'>{{ blog.title }}</a> | (<a href="/blogger/new?blog_id={{ blog.blog_id }}">New</a>)<br/>
-		<ul>
-		{% for post in posts %}
-		{% ifequal post.blog_id blog.blog_id %}
-		<li><a href="{{ post.link }}">{{ post.title }}</a> <br />
-		| <a href="/blogger/edit?post_id={{ post.post_id }}">Edit</a> 
-		| <a href="/blogger/delete?post_id={{ post.post_id }}">Delete</a>
-		</li>
-		{% endifequal %}
-		{% endfor %}
-		</ul>
+	<li><a href='/blogger/post_list?blog_id={{ blog.blog_id }}'>{{ blog.title }}</a>
+	[<a href="/blogger/new?blog_id={{ blog.blog_id }}">新建</a>]
+	[<a href="/blogger/import_post?blog_id={{ blog.blog_id }}" target="_blank">导入</a>]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	</li>
 	{% endfor %}
+	</ul>
 {% endif %}
+<form action="/blogger/_update_site" method="POST">
+<input type="submit" value="Update Blogger Info" />
+</form>
 {% endblock %}

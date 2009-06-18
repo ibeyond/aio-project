@@ -2,7 +2,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from apps.views.home import Home
 
-from apps.views import twitter
+from apps.views.twitter import Twitter
 from apps.lib.cron import Cron
 from apps.views.admin import Admin
 from apps.views.blogger import Blogger
@@ -12,8 +12,8 @@ webapp.template.register_template_library('apps.views.tags')
 
 urls = [
         (r'/', Home),
-        (r'/twitter', twitter.Twitter),
-        (r'/twitter/(.*)', twitter.Twitter),
+        (r'/twitter', Twitter),
+        (r'/twitter/(.*)', Twitter),
         (r'/blogger', Blogger),
         (r'/blogger/(.*)', Blogger),
         (r'/keyword', Keyword),

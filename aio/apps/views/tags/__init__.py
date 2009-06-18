@@ -5,6 +5,7 @@ from google.appengine.ext.webapp import template
 from apps.db import Keyword
 import logging, re, apps
 from datetime import timedelta
+import apps
 
 register = webapp.template.create_template_register()
 @register.filter
@@ -20,8 +21,8 @@ def replace_link (str):
     p = re.compile(r'(?P<name>(http|https)://\S+\b)')
     str = p.sub('(<a href="\g<1>" title="\g<1>">url</a>)',str)
     for keyword in Keyword.all().filter('keyword_category =','url'):
-        p = re.compile(r'(?P<name>\b%s\b(?![.]))' % keyword.keyword_name, re.IGNORECASE)
-        str = p.sub('<a href="%s">\g<1></a>' % keyword.keyword_value,str)
+        p = re.compile(r'(?P<name>%s(?![.]))' % keyword.keyword_name, re.IGNORECASE)
+        str = p.sub('<a href="%s" target="_blank">\g<1></a>' % keyword.keyword_value,str)
     return str
 
 @register.filter
