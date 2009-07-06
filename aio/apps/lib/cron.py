@@ -7,7 +7,7 @@ from google.appengine.ext.webapp import template
 import simplejson
 from datetime import datetime, timedelta
 import logging, gdata, atom, os
-from apps.db import Account, OAuthService, Counter, BlogSite, TwitterBlog
+from apps.db import Account, OAuthService, Counter, BlogSite, TwitterBlog, BloggerPostError
 from apps.views import twitter, blogger
 from apps.lib import oauth, user, feedparser
 from apps import lib
@@ -71,7 +71,7 @@ class Cron(webapp.RequestHandler):
         """
         for twitter_blog in TwitterBlog.all().order('-created'):
             blog_id = twitter_blog.blog_id.split('-')[-1]
-            token = OAuthService.all().filter('user =', twitter_blog.user).filter('service_name', 'blogger').get()
+            token = lib.get_token(blogger.blogger_service, twitter_blog.user)
             blog_url = token.realm + blog_id + '/posts/default'
             today = datetime.today()
             curr_date = datetime(today.year, today.month, today.day)
@@ -83,4 +83,18 @@ class Cron(webapp.RequestHandler):
             if twitter_daily is not None:
                 contents = template.render(path, {'twitter_status':twitter_daily})
                 entry = blogger.make_blog_post('Twitter Daily(%s)' % (show_date.strftime('%Y-%m-%d')), contents, [twitter_blog.category])
-                oauth.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry})
+                try:
+                    oauth.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry})
+                except Exception, e:
+                    logging.exception(e)
+                    self.redirect('/cron/twitter_daily_post_to_blog')
+                    pass
+
+    def post_to_blog_by_error(self):
+        for blog in BloggerPostError.all():
+            twitter_blog = TwitterBlog.all().filter('blog_id =', blog.blog_id).get()
+            token = lib.get_token(blogger.blogger_service, twitter_blog.user).get()
+            blog_id = blog.blog_id.split('-')[-1]
+            blog_url = token.realm + blog_id + '/posts/default'
+            oauth.get_data_from_signed_url(blog_url, token, 'POST', **{'body':entry})
+            db.delete(blog)
