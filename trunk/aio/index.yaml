@@ -17,7 +17,7 @@ indexes:
   - name: updated_at
     direction: desc
 
-# Used 47 times in query history.
+# Used 49 times in query history.
 - kind: BlogSite
   properties:
   - name: user
@@ -65,7 +65,13 @@ indexes:
   - name: published_at
     direction: desc
 
-# Used 3 times in query history.
+# Used once in query history.
+- kind: TwitterStatus
+  properties:
+  - name: twitter_user_id
+  - name: published_at
+
+# Used 4 times in query history.
 - kind: TwitterStatus
   properties:
   - name: twitter_user_id

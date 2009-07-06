@@ -29,9 +29,11 @@ def get_twitter_daily(user, date, sort='desc'):
         else:
             order_term = 'published_at'
         data = TwitterStatus.all().filter('twitter_user_id =', get_twitter_user(user).user_id).filter('published_at <', (date + timedelta(days=1))).filter('published_at >=', date).order(order_term)
-        if data is not None:
+        if (data is not None) and (data.count > 0):
             memcache.add('twitter_%s_%s' %(user.email() ,str(date)), data)
-    return data
+            return data
+        else:
+            return None
 
 def get_twitter_user(user):
     twitter_user = memcache.get('twitter_user_%s' % (user.email()))

@@ -126,6 +126,10 @@ class TwitterBlog(AIOBase):
     blog_id = db.StringProperty()
     category = db.StringProperty()
 
+class BloggerPostError(AIOBase):
+    blog_id = db.StringProperty()
+    entry = db.TextProperty()
+
 class Keyword(AIOBase):
     keyword_name = db.StringProperty()
     keyword_value = db.StringProperty()
