@@ -14,7 +14,7 @@ class Home(webapp.RequestHandler):
         page_data = {}
         user = users.get_current_user()
         if user:
-            reg_account(user)
+#            reg_account(user)
             page_data['user'] = user
         write = self.response.out.write
         path = os.path.join(os.path.dirname(__file__), 
