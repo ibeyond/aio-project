@@ -50,7 +50,11 @@ class AIOProcessor(webapp.RequestHandler):
             return
         #初始化页面数据
         self.page_data = {}
+        if self.user.email() != 'ibeyond@gmail.com':
+            self.error_page('非法访问')
+            return
         self.page_data['user'] = self.user
+        
         self.page_data['logout_url'] = users.create_logout_url('/')
         self.session = sessions.Session()
         self.template_file = None

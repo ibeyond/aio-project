@@ -139,3 +139,25 @@ class Twitter(AIOProcessor):
         else:
             raise AIOException(error)
         self.redirect('/twitter')
+        
+    def m8(self):
+        twitter_user = get_twitter_user(self.user) 
+        self.page_data['user_info'] = twitter_user
+        today = datetime.today()
+        curr_date = datetime(today.year, today.month, today.day)
+        self.page_data['local_now'] = curr_date + timedelta(seconds=apps.timedelta_seconds)
+        curr_date -= timedelta(seconds=apps.timedelta_seconds)
+        self.page_data['twitter_status'] = get_twitter_daily(self.user, curr_date)
+        
+    def _m8(self):
+        error = self.check_params()
+        if not error:
+            token = lib.get_token(twitter_service, self.user)
+            if token:
+                status = simplejson.loads(oauth.get_data_from_signed_url(twitter_user_update_url, token, __meth='POST', **{'status':self.form['c'].encode(apps.encoding)}))
+                add_status([status], self.user)
+                self.result['type'] = 'html'
+                self.result['body'] = self.form['c'].encode(apps.encoding)
+        else:
+            raise AIOException(error)
+        
