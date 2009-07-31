@@ -2,17 +2,44 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Twitter4M8</title>
-<script src="http://www.google.com/jsapi"></script>
-<script>
-  google.load("jquery", "1.3.2");
+<style type="text/css">
+div {
+	background-color: #FFFFFF;
+}
+
+#i {
+	padding: 10px 10px 1px 8px
+}
+#ds {
+    float:right;
+}
+body {
+	background-color: #DDFFCC
+}
+
+#s {
+	background-image: url('/img/round-btn.gif');
+	width: 115px;
+	height: 32px;
+	border: 0;
+	color: #666;
+	font-size: 14px;
+	margin-left: 3px;
+}
+</style>
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">
+  google.load("jquery", "1");
 </script>
 <script type="text/javascript" src="/js/jf.js"></script>
-<script>
-$(document).ready(function() { 
+<script type="text/javascript" src="/js/jc.js"></script>
+<script type="text/javascript">
+$(function() {
+	$('#i').corner();
     $('#p').ajaxForm({ 
         target: '#l', 
         success: function() { 
-        	$('#c').val('');
+            $('#c').val('');
             $('#a').html('<li>' + $('#l').html() + '</li>' + $('#a').html());
             $('#l').html('# ' + $('#l').html());
             $('#l').fadeIn('slow'); 
@@ -22,27 +49,22 @@ $(document).ready(function() {
 </script>
 </head>
 <body style="width: 720px;">
-<form action="/twitter/_m8" id="p" method="POST">
-<table width="450px">
-	<tr>
-		<td valign="top">
-		<textarea id="c" name="c" rows="2" cols="70"></textarea>
-		<div id="l"></div>
-		</td>
-		<td><input type="submit" value="提交"
-			style="width: 100px; height: 110px" id="s" /></td>
-	</tr>
-</table>
+<div id="i">
+<form action="/twitter/_m8" id="p" method="POST"><textarea id="c"
+	name="c" rows="2" cols="83"></textarea>
+<div><span id="l"></span>
+<div id="ds"><input type="submit" value="提交" id="s" /></div>
+</div>
 </form>
-<hr />
+<hr size="1"/>
 {% if twitter_status %}
 <ul id="a">
 	{% for s in twitter_status %}
 	<li>{{ s.text|replace_link|replace_twitter_link}}</li>
 	{% endfor %}
 </ul>
+</div>
 {% endif %}
-<hr />
 CopyRight iBeyond@2009
 </body>
 </html>
