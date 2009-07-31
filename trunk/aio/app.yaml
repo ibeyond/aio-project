@@ -10,6 +10,8 @@ handlers:
 - url: /css
   static_dir: static/css
   
+- url: /img
+  static_dir: static/img
 - url: .*
   script: main.py
   secure: optional
