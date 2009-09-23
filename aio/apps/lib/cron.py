@@ -80,7 +80,7 @@ class Cron(webapp.RequestHandler):
             path = os.path.join(os.path.dirname(__file__), 
                             '../views/templates/%s/%s.html' % ('twitter', 'twitter_daily'))
             twitter_daily = twitter.get_twitter_daily(twitter_blog.user, curr_date, sort='asc')
-            if twitter_daily is not None or twitter_daily.count() > 0:
+            if twitter_daily is not None:
                 contents = template.render(path, {'twitter_status':twitter_daily})
                 entry = blogger.make_blog_post('Twitter Daily(%s)' % (show_date.strftime('%Y-%m-%d')), contents, [twitter_blog.category])
                 try:

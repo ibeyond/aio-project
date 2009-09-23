@@ -13,9 +13,6 @@ from google.appengine.ext.webapp.util import login_required
 from google.appengine.ext.webapp import template
 from google.appengine.api import users
 
-
-from appengine_utilities import sessions
-
 import apps
 
 class AIOException(Exception):
@@ -56,11 +53,9 @@ class AIOProcessor(webapp.RequestHandler):
         self.page_data['user'] = self.user
         
         self.page_data['logout_url'] = users.create_logout_url('/')
-        self.session = sessions.Session()
         self.template_file = None
         try:
             getattr(self,action)()
-            self.page_data['session'] = self.session
             path = os.path.join(os.path.dirname(__file__), 
                         '../views/templates/%s/%s.html' % (self.__class__.__name__.lower(), (self.template_file is None) and action or self.template_file))
             self.log.info(path)

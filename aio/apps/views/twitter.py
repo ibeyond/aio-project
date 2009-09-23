@@ -21,7 +21,7 @@ twitter_import_counter = 'twitter_import'
 twitter_max_count = 20
 
 def get_twitter_daily(user, date, sort='desc'):
-#    data = memcache.get('twitter_%s_%s' %(user.email() ,str(date)))
+    data = memcache.get('twitter_%s_%s' %(user.email() ,str(date)))
     data = None
     if data is None:
         if sort == 'desc':
@@ -29,7 +29,7 @@ def get_twitter_daily(user, date, sort='desc'):
         else:
             order_term = 'published_at'
         data = TwitterStatus.all().filter('twitter_user_id =', get_twitter_user(user).user_id).filter('published_at <', (date + timedelta(days=1))).filter('published_at >=', date).order(order_term)
-        if (data is not None) and (data.count > 0):
+        if (data is not None) and (data.count() > 0):
             memcache.add('twitter_%s_%s' %(user.email() ,str(date)), data)
             return data
         else:
@@ -139,25 +139,3 @@ class Twitter(AIOProcessor):
         else:
             raise AIOException(error)
         self.redirect('/twitter')
-        
-    def m8(self):
-        twitter_user = get_twitter_user(self.user) 
-        self.page_data['user_info'] = twitter_user
-        today = datetime.today()
-        curr_date = datetime(today.year, today.month, today.day)
-        self.page_data['local_now'] = curr_date + timedelta(seconds=apps.timedelta_seconds)
-        curr_date -= timedelta(seconds=apps.timedelta_seconds)
-        self.page_data['twitter_status'] = get_twitter_daily(self.user, curr_date)
-        
-    def _m8(self):
-        error = self.check_params()
-        if not error:
-            token = lib.get_token(twitter_service, self.user)
-            if token:
-                status = simplejson.loads(oauth.get_data_from_signed_url(twitter_user_update_url, token, __meth='POST', **{'status':self.form['c'].encode(apps.encoding)}))
-                add_status([status], self.user)
-                self.result['type'] = 'html'
-                self.result['body'] = self.form['c'].encode(apps.encoding)
-        else:
-            raise AIOException(error)
-        
