@@ -2,16 +2,6 @@ cron:
 - description: sync Twitter
   url: /cron/twitter_update
   schedule: every 1 minutes
-  
-- description: update blogger post
-  url: /cron/update_blog_post
-  schedule: every 1 minutes
-
-- description: save counter
-  url: /cron/save_counter
-  schedule: every 1 minutes
-
-
 
 - description: twitter post to blogger
   url: /cron/twitter_daily_post_to_blog
